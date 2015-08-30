@@ -1,0 +1,49 @@
+body {
+  font-family: sans-serif;
+}
+
+body, div, h1, h2, h3, h4, p, a {
+  margin: 0;
+  padding: 0;
+}
+
+#stackContainer {
+  width: 50%;
+  float: left;
+}
+#stack {
+  border: 2px solid #8fcfb5;
+  padding: 10px 20px;
+}
+
+#sourceCodeContainer {
+  width: 50%;
+  display: inline-block;
+}
+#sourceCode {
+  border: 2px solid #91afcf;
+}
+#codeInputContainer {
+  background: #eee;
+  width: 100%;
+}
+#codeInput {
+  width: 100%;
+  margin-left: -2px;
+  spellcheck: false;
+  resize: none;
+  overflow-y: scroll;
+  font-family: monospace;
+  font-size: 20px;
+  line-height: 24px;
+  color: #333;
+  outline: none;
+  border: 0;
+}
+
+#output {
+  clear: both;
+  border: 2px solid #cfca9a;
+  padding: 10px 20px;
+}
+
