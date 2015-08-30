@@ -2,13 +2,10 @@ body {
   font-family: sans-serif;
 }
 
-body, div, h1, h2, h3, h4, p, a, textarea {
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-div {
-  box-sizing: border-box;
 }
 
 #wrapper {
@@ -17,42 +14,78 @@ div {
   height: 100%;
 }
 
-#stack, #sourceInput, #output {
-  overflow-y: scroll;
+#control {
+  height: 10%;
+  border: 5px solid #f7eae7;
+  padding: 10px;
+  text-align: right;
 }
 
-#stack {
-  width: 50%;
-  height: 80%;
-  border: 5px solid #8fcfb5;
-  padding: 0 20px;
+button {
+  outline: none;
+  border: 2px solid #888;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 20px;
+  background: #fff;
+  color: #888;
+}
+button:hover {
+  background: #eee;
+  color: #444;
+  border-color: #444;
+  cursor: pointer;
+}
+
+#output, #stackContainer, #source {
   float: left;
+  width: 33.3333333%;
+  height: 90%;
+}
+#output, #stackContainer, #sourceInput {
+  overflow-y: scroll;
+  font-family: monospace;
+  font-size: 20px;
+  line-height: 28px;
+  color: #333;
+}
+
+#output {
+  border: 5px solid #cfca9a;
+  padding: 10px 20px;
+}
+#output .message {
+  border-bottom: 1px dotted #ccc;
+}
+#output .message.error {
+  color: red;
+}
+
+#stackContainer {
+  border: 5px solid #8fcfb5;
+}
+#stackContainer .item {
+  padding: 5px 10px;
+  border-bottom: 1px solid #ccc;
+}
+#stackContainer .item .type {
+  font-family: sans-serif;
+  font-size: 16px;
+  color: #999;
 }
 
 #source {
-  width: 50%;
-  height: 80%;
   border: 5px solid #91afcf;
-  padding-left: 30px;
-  float: left;
+  padding-left: 40px;
+  background: #eee;
 }
 #sourceInput {
   width: 100%;
   height: 100%;
   display: block;
-  resize: none;
   spellcheck: false;
-  font-family: monospace;
-  font-size: 20px;
-  line-height: 24px;
-  color: #333;
   outline: none;
+  resize: none;
   border: 0;
 }
 
-#output {
-  clear: left;
-  height: 20%;
-  border: 5px solid #cfca9a;
-  padding: 0 20px;
-}
