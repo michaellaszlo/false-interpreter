@@ -2,7 +2,7 @@ body {
   font-family: sans-serif;
 }
 
-body, div, h1, h2, h3, h4, p, a {
+body, div, h1, h2, h3, h4, p, a, textarea {
   margin: 0;
   padding: 0;
 }
