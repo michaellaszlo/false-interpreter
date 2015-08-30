@@ -7,41 +7,52 @@ body, div, h1, h2, h3, h4, p, a, textarea {
   padding: 0;
 }
 
-#stackContainer {
-  width: 50%;
-  float: left;
-}
-#stack {
-  border: 2px solid #8fcfb5;
-  padding: 10px 20px;
+div {
+  box-sizing: border-box;
 }
 
-#sourceCodeContainer {
-  width: 50%;
-  display: inline-block;
-}
-#sourceCode {
-  border: 2px solid #91afcf;
-  background: #eee;
-}
-#codeInput {
-  display: block;
+#wrapper {
+  position: fixed;
   width: 100%;
-  spellcheck: false;
-  resize: none;
+  height: 100%;
+}
+
+#stack, #sourceInput, #output {
   overflow-y: scroll;
+}
+
+#stack {
+  width: 50%;
+  height: 80%;
+  border: 5px solid #8fcfb5;
+  padding: 0 20px;
+  float: left;
+}
+
+#source {
+  width: 50%;
+  height: 80%;
+  border: 5px solid #91afcf;
+  padding-left: 30px;
+  float: left;
+}
+#sourceInput {
+  width: 100%;
+  height: 100%;
+  display: block;
+  resize: none;
+  spellcheck: false;
   font-family: monospace;
   font-size: 20px;
   line-height: 24px;
   color: #333;
   outline: none;
-  border: 1px dotted #ccc;
   border: 0;
 }
 
 #output {
-  clear: both;
-  border: 2px solid #cfca9a;
-  padding: 10px 20px;
+  clear: left;
+  height: 20%;
+  border: 5px solid #cfca9a;
+  padding: 0 20px;
 }
-
