@@ -64,23 +64,42 @@ False.makeBoolean = function (boolValue) {
   return { type: False.types.boolean, value: boolValue };
 };
 
-False.integerValue = function (item) {
-  if (typeof(item) != 'object' || item.type != 'integer') {
+False.getIntegerValue = function (item) {
+  if (typeof(item) != 'object' || item.type != False.types.integer) {
     False.error('expected an integer');
+  } else {
+    return item.value;
+  }
+};
+False.getBooleanValue = function (item) {
+  if (typeof(item) != 'object' || item.type != False.types.boolean) {
+    False.error('expected a boolean');
   } else {
     return item.value;
   }
 };
 
 False.processToken = function (token) {
-  // Arithmetic operation.
+  // Integer value.
+  if (token.search(/^[0-9]$/) === 0) {
+    False.push(False.makeInteger(parseInt(token, 10)));
+    return;
+  }
+
+  // Character value.
+  if (token.search(/^'[A-Z]$/) === 0) {
+    False.push(False.makeCharacter(token.charAt(1)));
+    return;
+  }
+
+  // Arithmetic operators.
   if (token.length == 1 && '+-*/_=>'.indexOf(token) != -1) {
-    var b = False.integerValue(False.pop());
+    var b = False.getIntegerValue(False.pop());
     if (token == '_') {
       False.push(False.makeInteger(-b));
       return;
     }
-    var a = False.integerValue(False.pop());
+    var a = False.getIntegerValue(False.pop());
     if (token == '+') {
       False.push(False.makeInteger(a + b));
     } else if (token == '-') {
@@ -95,6 +114,22 @@ False.processToken = function (token) {
       False.push(False.makeBoolean(a === b));
     } else if (token == '>') {
       False.push(False.makeBoolean(a > b));
+    }
+    return;
+  }
+
+  // Logical operators.
+  if (token.length == 1 && '&|~'.indexOf(token) != -1) {
+    var b = False.getBooleanValue(False.pop());
+    if (token == '~') {
+      False.push(False.makeBoolean(!b));
+      return;
+    }
+    var a = False.getBooleanValue(False.pop());
+    if (token == '&') {
+      False.push(False.makeBoolean(a & b));
+    } else if (token == '-') {
+      False.push(False.makeInteger(a | b));
     }
     return;
   }
@@ -120,19 +155,7 @@ False.processToken = function (token) {
     return;
   }
 
-  // Integer value.
-  if (token.search(/^[0-9]$/) === 0) {
-    False.push(False.makeInteger(parseInt(token, 10)));
-    return;
-  }
-
-  // Character value.
-  if (token.search(/^'[A-Z]$/) === 0) {
-    False.push(False.makeCharacter(token.charAt(1)));
-    return;
-  }
-
-  False.error('invalid token');
+  False.error('invalid token "' + token + '"');
 };
 
 False.run = function () {
@@ -164,7 +187,7 @@ window.onload = function () {
   False.stackContainer = document.getElementById('stackContainer');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = " 2 8 =~ 'A 3 =~ 5 5 =~ 'Z 'Z ";
+  sourceInput.value = " 'X 'X =~ ~ 3 3 + 6 =~ ";
   False.run();
   runButton.onclick = False.run;
 };
