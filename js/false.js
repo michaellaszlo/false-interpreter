@@ -1,13 +1,16 @@
 var False = {
 };
 
+False.removeChildren = function (container) {
+  var children = container.children;
+  for (var i = children.length - 1; i >= 0; --i) {
+    container.removeChild(children[i]);
+  }
+};
+
 False.clearStack = function () {
   False.stack = [];
-  var container = False.stackContainer,
-      children = container.children;
-  for (var i = 0; i < children.length; ++i) {
-    container.removeChild(children[i]);
-  };
+  False.removeChildren(False.stackContainer);
 };
 
 False.push = function (item) {
@@ -35,6 +38,10 @@ False.error = function (s) {
   False.crash = true;
 };
 
+False.clearMessages = function () {
+  False.removeChildren(False.output);
+};
+
 False.message = function (s, classExtra) {
   var container = document.createElement('div');
   container.className = 'message ' + (classExtra || undefined);
@@ -50,7 +57,6 @@ False.makeBoolean = function (value) {
 };
 
 False.integerValue = function (item) {
-  console.log(item);
   if (typeof(item) != 'object' || item.type != 'integer') {
     False.error('expected an integer');
   } else {
@@ -95,7 +101,8 @@ False.processToken = function (token) {
 };
 
 False.run = function () {
-  False.message('running program');
+  False.clearMessages();
+  False.message('running');
   False.clearStack();
 
   // Tokenize the source code.
@@ -110,7 +117,6 @@ False.run = function () {
     var token = tokens[tokenIx];
     console.log('token ' + tokenIx + ': ' + token);
     False.processToken(token);
-    console.log(False.stack);
     if (False.crash) {
       console.log('crashed');
       break;
@@ -123,7 +129,7 @@ window.onload = function () {
   False.stackContainer = document.getElementById('stackContainer');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = ' 4 3 + 8 - ';
+  sourceInput.value = ' 2 8 _ > ';
   False.run();
   runButton.onclick = False.run;
 };
