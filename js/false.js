@@ -80,14 +80,15 @@ False.getBooleanValue = function (item) {
 };
 
 False.processToken = function (token) {
+
   // Integer value.
-  if (token.search(/^[0-9]$/) === 0) {
+  if (/^[0-9]$/.test(token)) {
     False.push(False.makeInteger(parseInt(token, 10)));
     return;
   }
 
   // Character value.
-  if (token.search(/^'[A-Z]$/) === 0) {
+  if (/^'[A-Z]$/.test(token)) {
     False.push(False.makeCharacter(token.charAt(1)));
     return;
   }
@@ -155,6 +156,16 @@ False.processToken = function (token) {
     return;
   }
 
+  // Variable assignment.
+  if (/^[a-z]:$/.test(token)) {
+    var name = token.charAt(0),
+        variable = False.variables[name];
+    variable.value = False.pop();
+    variable.span.value.innerHTML = variable.value.value;
+    variable.container.className = 'variable';
+    return;
+  }
+
   False.error('invalid token "' + token + '"');
 };
 
@@ -201,13 +212,13 @@ window.onload = function () {
     variable.appendChild(nameSpan);
     variable.appendChild(valueSpan);
     False.container.variables.appendChild(variable);
-    False.variables[ch] = { span: valueSpan };
+    False.variables[ch] = { container: variable, span: { value: valueSpan } };
   }
   False.container.output = document.getElementById('output');
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = "'X 'X =~ ~ 3 3 + 6 =~ ";
+  sourceInput.value = "3 a: 5 b:";
   False.run();
   runButton.onclick = False.run;
 };
