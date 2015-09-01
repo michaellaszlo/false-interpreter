@@ -166,6 +166,14 @@ False.processToken = function (token) {
     return;
   }
 
+  // Variable evaluation.
+  if (/^[a-z];$/.test(token)) {
+    var name = token.charAt(0),
+        variable = False.variables[name];
+    False.push(variable.value);
+    return;
+  }
+
   False.error('invalid token "' + token + '"');
 };
 
@@ -218,7 +226,7 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = "3 a: 5 b:";
+  sourceInput.value = "1 3 a: 5 b: a; + b;";
   False.run();
   runButton.onclick = False.run;
 };
