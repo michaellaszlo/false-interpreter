@@ -1,5 +1,5 @@
 body {
-  font-family: sans-serif;
+  font-family: monospace;
 }
 
 * {
@@ -37,17 +37,51 @@ button:hover {
   cursor: pointer;
 }
 
-#output, #stackContainer, #source {
+#variablesAndOutput, #stack, #source {
   float: left;
   width: 33.3333333%;
   height: 90%;
 }
-#output, #stackContainer, #sourceInput {
-  overflow-y: scroll;
+#variables {
+  height: 50%;
+}
+#output {
+  height: 50%;
+}
+#variables, #output, #stack, #sourceInput {
   font-family: monospace;
+  overflow-y: scroll;
   font-size: 20px;
   line-height: 28px;
   color: #333;
+}
+
+#variables {
+  border: 5px solid #b6e1d8;
+  padding: 10px 20px;
+}
+.variable {
+  float: left;
+  padding: 2px 10px;
+  margin-right: 15px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  background: #457f75;
+}
+.variable .name {
+  color: #fff;
+}
+.variable .value {
+  margin-left: 10px;
+  background: #fff;
+  padding: 0 8px;
+  border-radius: 6px;
+}
+.variable.unused {
+  background: #c9d1cf;
+}
+.variable.unused .value {
+  display: none;
 }
 
 #output {
@@ -58,17 +92,19 @@ button:hover {
   border-bottom: 1px dotted #ccc;
 }
 #output .message.error {
-  color: red;
+  color: #a23836;
 }
 
-#stackContainer {
+#stack {
   border: 5px solid #8fcfb5;
+  background: #eee;
 }
-#stackContainer .item {
+#stack .item {
+  background: #fff;
   padding: 5px 10px;
   border-bottom: 1px solid #ccc;
 }
-#stackContainer .item .type {
+#stack .item .type {
   font-family: sans-serif;
   font-size: 16px;
   color: #999;
@@ -76,10 +112,10 @@ button:hover {
 
 #source {
   border: 5px solid #91afcf;
-  padding-left: 40px;
   background: #eee;
 }
 #sourceInput {
+  padding: 10px 15px;
   width: 100%;
   height: 100%;
   display: block;
