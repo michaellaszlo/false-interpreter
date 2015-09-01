@@ -1,4 +1,9 @@
 var False = {
+  types: {
+    integer: 'integer',
+    character: 'character',
+    boolean: 'boolean'
+  }
 };
 
 False.removeChildren = function (container) {
@@ -49,11 +54,14 @@ False.message = function (s, classExtra) {
   False.output.appendChild(container);
 };
 
-False.makeInteger = function (value) {
-  return { type: 'integer', value: value };
+False.makeInteger = function (intValue) {
+  return { type: False.types.integer, value: intValue };
 };
-False.makeBoolean = function (value) {
-  return { type: 'boolean', value: value };
+False.makeCharacter = function (charValue) {
+  return { type: False.types.character, value: charValue };
+};
+False.makeBoolean = function (boolValue) {
+  return { type: False.types.boolean, value: boolValue };
 };
 
 False.integerValue = function (item) {
@@ -91,9 +99,36 @@ False.processToken = function (token) {
     return;
   }
 
+  // Inequality operator.
+  if (token == '=~') {
+    var b = False.pop(), a = False.pop();
+    // Check for strict equality.
+    if (a.type === b.type && a.value === b.value) {
+      False.push(False.makeBoolean(false));
+      return;
+    }
+    // Coerce characters to integers.
+    if (a.type === False.types.character) {
+      a.type = 'integer';
+      a.value = a.value.charCodeAt(0);
+    }
+    if (b.type === False.types.character) {
+      b.type = 'integer';
+      b.value = b.value.charCodeAt(0);
+    }
+    False.push(False.makeBoolean(a.type !== b.type || a.value !== b.value));
+    return;
+  }
+
   // Integer value.
   if (token.search(/^[0-9]$/) === 0) {
     False.push(False.makeInteger(parseInt(token, 10)));
+    return;
+  }
+
+  // Character value.
+  if (token.search(/^'[A-Z]$/) === 0) {
+    False.push(False.makeCharacter(token.charAt(1)));
     return;
   }
 
@@ -129,7 +164,7 @@ window.onload = function () {
   False.stackContainer = document.getElementById('stackContainer');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = ' 2 8 _ > ';
+  sourceInput.value = " 2 8 =~ 'A 3 =~ 5 5 =~ 'Z 'Z ";
   False.run();
   runButton.onclick = False.run;
 };
