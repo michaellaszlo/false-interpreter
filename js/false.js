@@ -15,7 +15,7 @@ False.removeChildren = function (container) {
 
 False.clearStack = function () {
   False.stack = [];
-  False.removeChildren(False.stackContainer);
+  False.removeChildren(False.container.stack);
 };
 
 False.push = function (item) {
@@ -25,7 +25,7 @@ False.push = function (item) {
   container.innerHTML = '<span class="type">' + item.type + '</span>' +
       ' <span class="value">' + item.value + '</span>';
   item.container = container;
-  False.stackContainer.appendChild(container);
+  False.container.stack.appendChild(container);
 };
 
 False.pop = function () {
@@ -33,7 +33,7 @@ False.pop = function () {
     False.error('the stack is empty');
   } else {
     var item = False.stack.pop();
-    False.stackContainer.removeChild(item.container);
+    False.container.stack.removeChild(item.container);
     return item;
   }
 };
@@ -44,14 +44,14 @@ False.error = function (s) {
 };
 
 False.clearMessages = function () {
-  False.removeChildren(False.output);
+  False.removeChildren(False.container.output);
 };
 
 False.message = function (s, classExtra) {
   var container = document.createElement('div');
   container.className = 'message ' + (classExtra || undefined);
   container.innerHTML = s;
-  False.output.appendChild(container);
+  False.container.output.appendChild(container);
 };
 
 False.makeInteger = function (intValue) {
@@ -159,9 +159,10 @@ False.processToken = function (token) {
 };
 
 False.run = function () {
+  False.crash = false;
+  False.clearStack();
   False.clearMessages();
   False.message('running');
-  False.clearStack();
 
   // Tokenize the source code.
   var source = False.sourceInput.value;
@@ -183,11 +184,30 @@ False.run = function () {
 };
 
 window.onload = function () {
-  False.output = document.getElementById('output');
-  False.stackContainer = document.getElementById('stackContainer');
+  False.container = {};
+  False.container.variables = document.getElementById('variables');
+  var a = 'A'.charCodeAt(0),
+      z = 'Z'.charCodeAt(0);
+  False.variables = {};
+  for (var i = a; i <= z; ++i) {
+    var ch = String.fromCharCode(i),
+        variable = document.createElement('div');
+    variable.className = 'variable unused';
+    var nameSpan = document.createElement('span'),
+        valueSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.innerHTML = ch;
+    valueSpan.className = 'value';
+    variable.appendChild(nameSpan);
+    variable.appendChild(valueSpan);
+    False.container.variables.appendChild(variable);
+    False.variables[ch] = { span: valueSpan };
+  }
+  False.container.output = document.getElementById('output');
+  False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = " 'X 'X =~ ~ 3 3 + 6 =~ ";
+  sourceInput.value = "'X 'X =~ ~ 3 3 + 6 =~ ";
   False.run();
   runButton.onclick = False.run;
 };
