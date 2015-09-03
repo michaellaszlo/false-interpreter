@@ -174,7 +174,24 @@ False.processToken = function (token) {
     return;
   }
 
+  // Function definition.
+  if (token == '[') {
+    // Now we would have to scan ahead. Hm.
+  }
+
+  
+  // Function evaluation.
+
   False.error('invalid token "' + token + '"');
+};
+
+False.tokenize = function (s) {
+  var tokens = [],
+      pos = 0;
+  while (pos != s.length) {
+    var ch = s.charAt(pos);
+  }
+  return tokens;
 };
 
 False.run = function () {
@@ -183,8 +200,17 @@ False.run = function () {
   False.clearMessages();
   False.message('running');
 
-  // Tokenize the source code.
   var source = False.sourceInput.value;
+
+  // Tokenize: characters -> tokens
+  
+  // Parse: tokens -> parse tree
+
+  // Evaluate: parse tree -> output
+  
+
+  return;
+
   // Trim whitespace from ends.
   source = source.replace(/^\s+|\s$/g, '');
   // Discard line-terminating characters.
@@ -200,6 +226,7 @@ False.run = function () {
       break;
     }
   }
+  False.message('done');
 };
 
 window.onload = function () {

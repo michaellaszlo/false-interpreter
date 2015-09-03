@@ -86,7 +86,7 @@ button:hover {
 
 #output {
   border: 5px solid #cfca9a;
-  padding: 10px 20px;
+  padding: 2px 20px;
 }
 #output .message {
   border-bottom: 1px dotted #ccc;
