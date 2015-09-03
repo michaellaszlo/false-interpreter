@@ -1,9 +1,124 @@
-var False = {
-  types: {
-    integer: 'integer',
-    character: 'character',
-    boolean: 'boolean'
+var False = {};
+
+False.fillCategory = function (categoryName, memberNames) {
+  var category = False[categoryName] = {};
+  memberNames.forEach(function (name) {
+    category[name] = name;
+  });
+};
+
+False.token = {
+  value: {
+    integer: 'integer value',
+    character: 'character value',
+    string: 'string value'
+  },
+  operator: {
+    arithmetic: 'arithmetic operator',
+    comparison: 'comparison operator',
+    logical: 'logical operator'
+  },
+  variable: {
+    name: 'variable name',
+    operator: 'variable operator'
+  },
+  lambda: {
+    open: 'open lambda',
+    close: 'close lambda'
   }
+};
+
+False.fillCategory('value', ['integer', 'boolean', 'character']);
+
+False.makeToken = function (category, begin, s) {
+  return { category: category, begin: begin, string: s };
+};
+
+False.tokenize = function (s) {
+  var result = {},
+      tokens = result.tokens = [],
+      makeToken = False.makeToken,
+      error = function (begin, end, message) {
+        result.error = { begin: begin, end: end, message: message };
+        return result;
+      },
+      token = False.token,
+      pos = 0;
+  while (pos < s.length) {
+    var ch = s.charAt(pos);
+    ++pos;
+    if (/\s/.test(ch)) {
+      continue;
+    }
+
+    // Elementary functions.
+    if ('+-*/'.indexOf(ch) != -1) {
+      tokens.push(makeToken(token.operator.arithmetic, pos - 1, ch));
+      continue;
+    }
+    if ('=>'.indexOf(ch) != -1) {
+      tokens.push(makeToken(token.operator.comparison, pos - 1, ch));
+      continue;
+    }
+    if ('&|~'.indexOf(ch) != -1) {
+      tokens.push(makeToken(token.operator.logical, pos - 1, ch));
+      continue;
+    }
+
+    // Integer value.
+    if (/[0-9]/.test(ch)) {
+      var seek = pos;
+      while (seek < s.length && /[0-9]/.test(s.charAt(seek))) {
+        ++seek;
+      }
+      tokens.push(makeToken(token.value.integer, pos - 1,
+          s.substring(pos - 1, seek)));
+      pos = seek;
+      continue;
+    }
+
+    // Character value.
+    if (ch == "'") {
+      if (pos < s.length) {
+        tokens.push(makeToken(token.value.character, pos, s.charAt(pos)));
+        ++pos;
+        continue;
+      } else {
+        return error(pos - 1, pos, 'missing character');
+      } 
+    }
+
+    // Global variable: assignment or evaluation.
+    if (/[a-z]/.test(ch)) {
+      tokens.push(makeToken(token.variable.name, pos - 1, ch));
+      if (pos < s.length) {
+        if (s.charAt(pos) == ':') {
+          tokens.push(makeToken(token.variable.operator, pos, s.charAt(pos)));
+        } else if (s.charAt(pos) == ';') {
+          tokens.push(makeToken(token.variable.operator, pos, s.charAt(pos)));
+        } else {
+          return error(pos - 1, pos + 1, 'invalid variable operator');
+        }
+        ++pos;
+        continue;
+      } else {
+        return error(pos - 1, pos, 'missing variable operator');
+      }
+    }
+
+  }
+  return result;
+};
+
+False.highlightCode = function (begin, end) {
+  console.log('highlight', begin, end);
+};
+
+False.parse = function (tokens) {
+  return {};
+};
+
+False.evaluate = function (parseTree) {
 };
 
 False.removeChildren = function (container) {
@@ -185,31 +300,32 @@ False.processToken = function (token) {
   False.error('invalid token "' + token + '"');
 };
 
-False.tokenize = function (s) {
-  var tokens = [],
-      pos = 0;
-  while (pos != s.length) {
-    var ch = s.charAt(pos);
-  }
-  return tokens;
-};
-
 False.run = function () {
-  False.crash = false;
-  False.clearStack();
   False.clearMessages();
   False.message('running');
-
-  var source = False.sourceInput.value;
+  False.clearStack();
+  False.error = undefined;
 
   // Tokenize: characters -> tokens
+  var result = False.tokenize(False.sourceInput.value),
+      error = result.error;
+  if (error) {
+    False.highlightCode(error.begin, error.end);
+    console.log('parse error: ' + error.message);
+    return;
+  }
+  var tokens = result.tokens;
+  tokens.forEach(function (token) {
+    console.log(token);
+  });
+  
+  return;
   
   // Parse: tokens -> parse tree
+  var parseTree = False.parse(tokens);
 
   // Evaluate: parse tree -> output
-  
-
-  return;
+  False.evaluate(parseTree);
 
   // Trim whitespace from ends.
   source = source.replace(/^\s+|\s$/g, '');
