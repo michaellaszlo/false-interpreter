@@ -92,7 +92,7 @@ button:hover {
   border-bottom: 1px dotted #ccc;
 }
 #output .message.error {
-  color: #a23836;
+  color: #b9373c;
 }
 
 #stack {

@@ -113,15 +113,22 @@ False.tokenize = function (s) {
     }
 
     // Double-quoted character sequence: string.
-    // This is a double quote inside a string: \"
-    // This is a slash at the end of a string: \\
     if (ch == '"') {
       var seek = pos;
-      while (seek < s.length) {
+      while (true) {
+        if (seek == s.length) {
+          return error(pos - 1, seek, 'string not terminated');
+        }
         ch = s.charAt(seek);
         ++seek;
+        // Check for an escaped double quote.
+        if (ch == '\\' && seek < s.length && s.charAt(seek) == '"') {
+          ++seek;
+          continue;
+        }
+        // Check for the end of the string.
         if (ch == '"') {
-          // Note that we are stripping the string delimiters.
+          // Discard the delimiters as we make the token.
           tokens.push(makeToken(token.value.string, pos,
               s.substring(pos, seek - 1)));
           pos = seek;
@@ -182,9 +189,8 @@ False.pop = function () {
   }
 };
 
-False.error = function (s) {
-  False.message('error: ' + s, 'error');
-  False.crash = true;
+False.errorMessage = function (s) {
+  False.message(s, 'error');
 };
 
 False.clearMessages = function () {
@@ -340,7 +346,7 @@ False.run = function () {
       error = result.error;
   if (error) {
     False.highlightCode(error.begin, error.end);
-    console.log('parse error: ' + error.message);
+    False.errorMessage('parse error: ' + error.message);
     return;
   }
   var tokens = result.tokens;
@@ -398,19 +404,20 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  //sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
-  //sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
+  sourceInput.value = '"\\"Hello there.\\""\n"\\"Hi.\\""';
   /*
+  sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
+  sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
   sourceInput.value = "[[$' =][%^]#]b:" +
       "[$$'.=\' =|~]w:" +
       "[$'.=~[' ,]?]s:" +
       "[w;![^o;!\,]?]o:" +
       "^b;![$'.=~][w;[,^]#b;!s;!o;!b;!s;!]#,";
-  */
   sourceInput.value = '[$0=["no more bottles"]?$1=["One bottle"]?$1>[$.' +
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
+  */
   False.run();
   runButton.onclick = False.run;
 };
