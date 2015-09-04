@@ -132,7 +132,6 @@ False.tokenize = function (s) {
           // Discard the delimiters as we make the token.
           tokens.push(makeToken(token.value.string, pos,
               s.substring(pos, seek - 1)));
-          console.log(tokens[tokens.length - 1].text);
           pos = seek;
           break;
         }
@@ -159,6 +158,9 @@ False.tokenize = function (s) {
       pos = seek;
       continue;
     }
+
+    // If we didn't recognize the character, it's a syntax error.
+    return error(pos - 1, pos, 'invalid character');
   }
   return result;
 };
@@ -421,7 +423,7 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = '{ Conversation. { Go. } }\n' +
+  sourceInput.value = '{ Conversation. { Go. } }\n()\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
       '{ It\'s over. { Really. } }';
   /*
