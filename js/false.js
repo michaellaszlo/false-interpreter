@@ -28,7 +28,8 @@ False.token = {
       open: 'open string',
       close: 'close string'
     }
-  }
+  },
+  comment: 'comment'
 };
 
 (function () {
@@ -131,6 +132,7 @@ False.tokenize = function (s) {
           // Discard the delimiters as we make the token.
           tokens.push(makeToken(token.value.string, pos,
               s.substring(pos, seek - 1)));
+          console.log(tokens[tokens.length - 1].text);
           pos = seek;
           break;
         }
@@ -141,6 +143,21 @@ False.tokenize = function (s) {
     // Left brace + any characters except right brace + right brace: comment.
     // Note that comments cannot be nested.
     if (ch == '{') {
+      var seek = pos;
+      while (true) {
+        if (seek == s.length) {
+          return error(pos - 1, seek, 'comment not terminated');
+        }
+        ch = s.charAt(seek);
+        ++seek;
+        if (ch == '}') {
+          break;
+        }
+      }
+      tokens.push(makeToken(token.comment, pos - 1,
+          s.substring(pos - 1, seek)));
+      pos = seek;
+      continue;
     }
   }
   return result;
@@ -351,7 +368,7 @@ False.run = function () {
   }
   var tokens = result.tokens;
   tokens.forEach(function (token) {
-    console.log(token);
+    console.log(JSON.stringify(token));
   });
   
   return;
@@ -404,7 +421,9 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = '"\\"Hello there.\\""\n"\\"Hi.\\""';
+  sourceInput.value = '{ Conversation. { Go. } }\n' +
+      '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
+      '{ It\'s over. { Really. } }';
   /*
   sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
   sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
