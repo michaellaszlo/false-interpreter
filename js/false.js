@@ -52,7 +52,7 @@ False.tokenize = function (s) {
     }
 
     // Elementary functions.
-    if ('+-*/'.indexOf(ch) != -1) {
+    if ('+-*/_'.indexOf(ch) != -1) {
       tokens.push(makeToken(token.operator.arithmetic, pos - 1, ch));
       continue;
     }
