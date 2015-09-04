@@ -61,7 +61,7 @@ False.token = {
 })();
 
 False.makeToken = function (category, begin, s) {
-  return { category: category, begin: begin, string: s };
+  return { category: category, begin: begin, text: s };
 };
 
 False.tokenize = function (s) {
@@ -112,6 +112,29 @@ False.tokenize = function (s) {
       } 
     }
 
+    // Double-quoted character sequence: string.
+    // This is a double quote inside a string: \"
+    // This is a slash at the end of a string: \\
+    if (ch == '"') {
+      var seek = pos;
+      while (seek < s.length) {
+        ch = s.charAt(seek);
+        ++seek;
+        if (ch == '"') {
+          // Note that we are stripping the string delimiters.
+          tokens.push(makeToken(token.value.string, pos,
+              s.substring(pos, seek - 1)));
+          pos = seek;
+          break;
+        }
+      }
+      continue;
+    }
+
+    // Left brace + any characters except right brace + right brace: comment.
+    // Note that comments cannot be nested.
+    if (ch == '{') {
+    }
   }
   return result;
 };
@@ -376,7 +399,7 @@ window.onload = function () {
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
   //sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
-  sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
+  //sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
   /*
   sourceInput.value = "[[$' =][%^]#]b:" +
       "[$$'.=\' =|~]w:" +
@@ -384,6 +407,10 @@ window.onload = function () {
       "[w;![^o;!\,]?]o:" +
       "^b;![$'.=~][w;[,^]#b;!s;!o;!b;!s;!]#,";
   */
+  sourceInput.value = '[$0=["no more bottles"]?$1=["One bottle"]?$1>[$.' +
+    '" bottles"]?%" of beer"]b:' +
+    '100[$0>][$b;!" on the wall, "$b;!".' +
+    '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   False.run();
   runButton.onclick = False.run;
 };
