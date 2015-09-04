@@ -1,12 +1,5 @@
 var False = {};
 
-False.fillCategory = function (categoryName, memberNames) {
-  var category = False[categoryName] = {};
-  memberNames.forEach(function (name) {
-    category[name] = name;
-  });
-};
-
 False.token = {
   value: {
     integer: 'integer value',
@@ -16,19 +9,56 @@ False.token = {
   operator: {
     arithmetic: 'arithmetic operator',
     comparison: 'comparison operator',
-    logical: 'logical operator'
+    logical: 'logical operator',
+    variable: 'variable operator',
+    stack: 'stack operator',
+    control: 'control operator',
+    io: 'I/O operator',
+    lambda: 'lambda operator'
   },
   variable: {
-    name: 'variable name',
-    operator: 'variable operator'
+    name: 'variable name'
   },
-  lambda: {
-    open: 'open lambda',
-    close: 'close lambda'
+  delimiter: {
+    lambda: {
+      open: 'open lambda',
+      close: 'close lambda'
+    },
+    string: {
+      open: 'open string',
+      close: 'close string'
+    }
   }
 };
 
-False.fillCategory('value', ['integer', 'boolean', 'character']);
+(function () {
+  var token = False.token,
+      lookup = token.lookup = {},
+      operator = token.operator,
+      delimiter = token.delimiter;
+  function fill(s, name) {
+    s.split('').forEach(function (ch) {
+      lookup[ch] = name;
+    });
+  }
+  fill('+-*/_', operator.arithmetic);
+  fill('=<', operator.comparison);
+  fill('&|~', operator.logical);
+  fill(':;', operator.variable);
+  fill('$%\@ø', operator.stack);
+  fill('?#', operator.control);
+  fill('.,^ß', operator.io);
+  fill('[', delimiter.lambda.open);
+  fill(']', delimiter.lambda.close);
+  fill('!', operator.lambda);
+  function range(firstChar, lastChar, name) {
+    var last = lastChar.charCodeAt(0);
+    for (var i = firstChar.charCodeAt(0); i <= last; ++i) {
+      lookup[String.fromCharCode(i)] = name;
+    }
+  }
+  range('a', 'z', token.variable.name);
+})();
 
 False.makeToken = function (category, begin, s) {
   return { category: category, begin: begin, string: s };
@@ -43,6 +73,7 @@ False.tokenize = function (s) {
         return result;
       },
       token = False.token,
+      lookup = token.lookup,
       pos = 0;
   while (pos < s.length) {
     var ch = s.charAt(pos);
@@ -51,21 +82,14 @@ False.tokenize = function (s) {
       continue;
     }
 
-    // Elementary functions.
-    if ('+-*/_'.indexOf(ch) != -1) {
-      tokens.push(makeToken(token.operator.arithmetic, pos - 1, ch));
-      continue;
-    }
-    if ('=>'.indexOf(ch) != -1) {
-      tokens.push(makeToken(token.operator.comparison, pos - 1, ch));
-      continue;
-    }
-    if ('&|~'.indexOf(ch) != -1) {
-      tokens.push(makeToken(token.operator.logical, pos - 1, ch));
+    // Single character: operator, lambda delimiter, or variable name.
+    var lookupResult = lookup[ch];
+    if (lookupResult !== undefined) {
+      tokens.push(makeToken(lookupResult, pos - 1, ch));
       continue;
     }
 
-    // Integer value.
+    // Sequence of digits: integer value.
     if (/[0-9]/.test(ch)) {
       var seek = pos;
       while (seek < s.length && /[0-9]/.test(s.charAt(seek))) {
@@ -77,7 +101,7 @@ False.tokenize = function (s) {
       continue;
     }
 
-    // Character value.
+    // Single quote followed by any character: character value.
     if (ch == "'") {
       if (pos < s.length) {
         tokens.push(makeToken(token.value.character, pos, s.charAt(pos)));
@@ -86,18 +110,6 @@ False.tokenize = function (s) {
       } else {
         return error(pos - 1, pos, 'missing character');
       } 
-    }
-
-    // Variable name.
-    if (/[a-z]/.test(ch)) {
-      tokens.push(makeToken(token.variable.name, pos - 1, ch));
-      continue;
-    }
-
-    // Variable operators.
-    if (/[:;]/.test(ch)) {
-      tokens.push(makeToken(token.variable.operator, pos - 1, ch));
-      continue;
     }
 
   }
@@ -363,7 +375,15 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = "1 3 a: 5 b: a; + b;";
+  //sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
+  sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
+  /*
+  sourceInput.value = "[[$' =][%^]#]b:" +
+      "[$$'.=\' =|~]w:" +
+      "[$'.=~[' ,]?]s:" +
+      "[w;![^o;!\,]?]o:" +
+      "^b;![$'.=~][w;[,^]#b;!s;!o;!b;!s;!]#,";
+  */
   False.run();
   runButton.onclick = False.run;
 };
