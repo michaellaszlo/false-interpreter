@@ -88,22 +88,16 @@ False.tokenize = function (s) {
       } 
     }
 
-    // Global variable: assignment or evaluation.
+    // Variable name.
     if (/[a-z]/.test(ch)) {
       tokens.push(makeToken(token.variable.name, pos - 1, ch));
-      if (pos < s.length) {
-        if (s.charAt(pos) == ':') {
-          tokens.push(makeToken(token.variable.operator, pos, s.charAt(pos)));
-        } else if (s.charAt(pos) == ';') {
-          tokens.push(makeToken(token.variable.operator, pos, s.charAt(pos)));
-        } else {
-          return error(pos - 1, pos + 1, 'invalid variable operator');
-        }
-        ++pos;
-        continue;
-      } else {
-        return error(pos - 1, pos, 'missing variable operator');
-      }
+      continue;
+    }
+
+    // Variable operators.
+    if (/[:;]/.test(ch)) {
+      tokens.push(makeToken(token.variable.operator, pos - 1, ch));
+      continue;
     }
 
   }
