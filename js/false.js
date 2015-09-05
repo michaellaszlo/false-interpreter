@@ -29,7 +29,13 @@ False.token = {
       close: 'close string'
     }
   },
-  comment: 'comment'
+  comment: 'comment', 
+  error: {
+    character: 'character error',
+    string: 'string error',
+    comment: 'comment error',
+    invalid: 'invalid'
+  }
 };
 
 (function () {
@@ -61,18 +67,20 @@ False.token = {
   range('a', 'z', token.variable.name);
 })();
 
-False.makeToken = function (category, begin, s) {
-  return { category: category, begin: begin, text: s };
+False.makeToken = function (category, begin, end) {
+  return { category: category, begin: begin, end: end };
+};
+
+False.makeError = function (token, message) {
+  return { token: token, message: message };
 };
 
 False.tokenize = function (s) {
   var result = {},
       tokens = result.tokens = [],
+      errors = result.errors = [],
       makeToken = False.makeToken,
-      error = function (begin, end, message) {
-        result.error = { begin: begin, end: end, message: message };
-        return result;
-      },
+      makeError = False.makeError,
       token = False.token,
       lookup = token.lookup,
       pos = 0;
@@ -86,7 +94,7 @@ False.tokenize = function (s) {
     // Single character: operator, lambda delimiter, or variable name.
     var lookupResult = lookup[ch];
     if (lookupResult !== undefined) {
-      tokens.push(makeToken(lookupResult, pos - 1, ch));
+      tokens.push(makeToken(lookupResult, pos - 1, pos));
       continue;
     }
 
@@ -96,8 +104,7 @@ False.tokenize = function (s) {
       while (seek < s.length && /[0-9]/.test(s.charAt(seek))) {
         ++seek;
       }
-      tokens.push(makeToken(token.value.integer, pos - 1,
-          s.substring(pos - 1, seek)));
+      tokens.push(makeToken(token.value.integer, pos - 1, seek));
       pos = seek;
       continue;
     }
@@ -105,11 +112,14 @@ False.tokenize = function (s) {
     // Single quote followed by any character: character value.
     if (ch == "'") {
       if (pos < s.length) {
-        tokens.push(makeToken(token.value.character, pos, s.charAt(pos)));
+        tokens.push(makeToken(token.value.character, pos, pos + 1));
         ++pos;
         continue;
       } else {
-        return error(pos - 1, pos, 'missing character');
+        tokens.push(makeToken(token.error.character, pos - 1, pos));
+        errors.push(makeError(tokens[tokens.length - 1],
+            'missing character'));
+        break;
       } 
     }
 
@@ -118,7 +128,11 @@ False.tokenize = function (s) {
       var seek = pos;
       while (true) {
         if (seek == s.length) {
-          return error(pos - 1, seek, 'string not terminated');
+          tokens.push(makeToken(token.error.string, pos - 1, seek));
+          errors.push(makeError(tokens[tokens.length - 1],
+              'string not terminated'));
+          pos = seek;
+          break;
         }
         ch = s.charAt(seek);
         ++seek;
@@ -129,9 +143,8 @@ False.tokenize = function (s) {
         }
         // Check for the end of the string.
         if (ch == '"') {
-          // Discard the delimiters as we make the token.
-          tokens.push(makeToken(token.value.string, pos,
-              s.substring(pos, seek - 1)));
+          // Discard the delimiters when we make the token.
+          tokens.push(makeToken(token.value.string, pos, seek - 1));
           pos = seek;
           break;
         }
@@ -145,28 +158,29 @@ False.tokenize = function (s) {
       var seek = pos;
       while (true) {
         if (seek == s.length) {
-          return error(pos - 1, seek, 'comment not terminated');
+          tokens.push(makeToken(token.error.comment, pos - 1, seek));
+          errors.push(makeError(tokens[tokens.length - 1],
+              'comment not terminated'));
+          pos = seek;
+          break;
         }
         ch = s.charAt(seek);
         ++seek;
         if (ch == '}') {
+          tokens.push(makeToken(token.comment, pos - 1, seek));
+          pos = seek;
           break;
         }
       }
-      tokens.push(makeToken(token.comment, pos - 1,
-          s.substring(pos - 1, seek)));
-      pos = seek;
       continue;
     }
 
     // If we didn't recognize the character, it's a syntax error.
-    return error(pos - 1, pos, 'invalid character');
+    tokens.push(makeToken(token.error.invalid, pos - 1, pos));
+    errors.push(makeError(tokens[tokens.length - 1],
+        'invalid code'));
   }
   return result;
-};
-
-False.highlightCode = function (begin, end) {
-  console.log('highlight', begin, end);
 };
 
 False.parse = function (tokens) {
@@ -361,16 +375,21 @@ False.run = function () {
   False.error = undefined;
 
   // Tokenize: characters -> tokens
-  var result = False.tokenize(False.sourceInput.value),
-      error = result.error;
-  if (error) {
-    False.highlightCode(error.begin, error.end);
-    False.errorMessage('parse error: ' + error.message);
+  var sourceCode = False.sourceInput.value,
+      result = False.tokenize(sourceCode),
+      errors = result.errors;
+  if (errors.length != 0) {
+    False.errorMessage(errors.length + ' syntax errors');
+    errors.forEach(function (error) {
+      console.log(error);
+      False.errorMessage(error.message + ': ' +
+          sourceCode.substring(error.token.begin, error.token.end));
+    });
     return;
   }
   var tokens = result.tokens;
   tokens.forEach(function (token) {
-    console.log(JSON.stringify(token));
+    console.log(JSON.stringify(token), '>' + sourceCode.substring(token.begin, token.end) + '<');
   });
   
   return;
@@ -423,9 +442,9 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = '{ Conversation. { Go. } }\n()\n' +
+  sourceInput.value = '{ Conversation. }\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
-      '{ It\'s over. { Really. } }';
+      '{ That\'s all. }';
   /*
   sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
   sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
