@@ -382,8 +382,13 @@ False.run = function () {
     False.errorMessage(errors.length + ' syntax errors');
     errors.forEach(function (error) {
       console.log(error);
-      False.errorMessage(error.message + ': ' +
-          sourceCode.substring(error.token.begin, error.token.end));
+      var token = error.token,
+          text = sourceCode.substring(token.begin, token.end);
+      if (text.length > 20) {
+        text = text.substring(0, 20) + '...';
+      }
+      False.errorMessage(error.message + ' at position ' + token.begin +
+          ': ' + text);
     });
     return;
   }
@@ -442,9 +447,9 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = '{ Conversation. }\n' +
+  sourceInput.value = '{ Conversation. }\n()\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
-      '{ That\'s all. }';
+      '{ That\'s all} }';
   /*
   sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
   sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
