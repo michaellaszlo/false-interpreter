@@ -75,7 +75,7 @@ False.makeError = function (token, message) {
   return { token: token, message: message };
 };
 
-False.tokenize = function (s) {
+False.scan = function (s) {
   var result = {},
       tokens = result.tokens = [],
       errors = result.errors = [],
@@ -184,6 +184,19 @@ False.tokenize = function (s) {
 };
 
 False.parse = function (tokens) {
+  var sourceInput = False.sourceInput;
+  function highlight(ix) {
+    if (ix == tokens.length) {
+      sourceInput.selectionStart = sourceInput.selectionEnd = undefined;
+      return;
+    }
+    var token = tokens[ix];
+    console.log(token);
+    sourceInput.selectionStart = token.begin;
+    sourceInput.selectionEnd = token.end;
+    window.setTimeout(function () { highlight(ix + 1) }, 500);
+  }
+  highlight(0);
   return {};
 };
 
@@ -220,6 +233,11 @@ False.pop = function () {
     False.container.stack.removeChild(item.container);
     return item;
   }
+};
+
+False.error = function (message) {
+  False.errorMessage(message);
+  False.crash = true;
 };
 
 False.errorMessage = function (s) {
@@ -369,14 +387,13 @@ False.processToken = function (token) {
 };
 
 False.run = function () {
-  False.clearMessages();
-  False.message('running');
   False.clearStack();
-  False.error = undefined;
+  False.clearMessages();
 
-  // Tokenize: characters -> tokens
+  // Scan: characters -> tokens
+  False.message('scanning');
   var sourceCode = False.sourceInput.value,
-      result = False.tokenize(sourceCode),
+      result = False.scan(sourceCode),
       errors = result.errors;
   if (errors.length != 0) {
     False.errorMessage(errors.length + ' syntax errors');
@@ -392,15 +409,17 @@ False.run = function () {
     });
     return;
   }
-  var tokens = result.tokens;
-  tokens.forEach(function (token) {
+
+  function displayToken(token) {
     console.log(JSON.stringify(token), '>' + sourceCode.substring(token.begin, token.end) + '<');
-  });
-  
-  return;
+  }
   
   // Parse: tokens -> parse tree
-  var parseTree = False.parse(tokens);
+  False.message('parsing');
+  var tokens = result.tokens,
+      parseTree = False.parse(tokens);
+
+  return;
 
   // Evaluate: parse tree -> output
   False.evaluate(parseTree);
@@ -447,9 +466,9 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
-  sourceInput.value = '{ Conversation. }\n()\n' +
+  sourceInput.value = '{ Conversation. }\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
-      '{ That\'s all} }';
+      '{ Exeunt. }';
   /*
   sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
   sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
