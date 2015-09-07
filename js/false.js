@@ -49,7 +49,7 @@ False.token = {
     });
   }
   fill('+-*/_', operator.arithmetic);
-  fill('=<', operator.comparison);
+  fill('=>', operator.comparison);
   fill('&|~', operator.logical);
   fill(':;', operator.variable);
   fill('$%\@ø', operator.stack);
@@ -184,6 +184,13 @@ False.scan = function (s) {
 };
 
 False.parse = function (tokens) {
+  tokens.forEach(function (token, ix) {
+    console.log(token);
+  });
+  return {};
+};
+
+False.evaluate = function (parseTree) {
   var sourceInput = False.sourceInput;
   function highlight(ix) {
     if (ix == tokens.length) {
@@ -197,10 +204,6 @@ False.parse = function (tokens) {
     window.setTimeout(function () { highlight(ix + 1) }, 500);
   }
   highlight(0);
-  return {};
-};
-
-False.evaluate = function (parseTree) {
 };
 
 False.removeChildren = function (container) {
@@ -466,10 +469,10 @@ window.onload = function () {
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
       runButton = document.getElementById('runButton');
+  /*
   sourceInput.value = '{ Conversation. }\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
       '{ Exeunt. }';
-  /*
   sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
   sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
   sourceInput.value = "[[$' =][%^]#]b:" +
@@ -477,11 +480,11 @@ window.onload = function () {
       "[$'.=~[' ,]?]s:" +
       "[w;![^o;!\,]?]o:" +
       "^b;![$'.=~][w;[,^]#b;!s;!o;!b;!s;!]#,";
+  */
   sourceInput.value = '[$0=["no more bottles"]?$1=["One bottle"]?$1>[$.' +
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  */
   False.run();
   runButton.onclick = False.run;
 };
