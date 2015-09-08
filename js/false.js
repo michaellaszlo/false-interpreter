@@ -6,6 +6,9 @@ False.token = {
     character: 'character value',
     string: 'string value'
   },
+  variable: {
+    name: 'variable name'
+  },
   operator: {
     arithmetic: 'arithmetic operator',
     comparison: 'comparison operator',
@@ -15,9 +18,6 @@ False.token = {
     control: 'control operator',
     io: 'I/O operator',
     lambda: 'lambda operator'
-  },
-  variable: {
-    name: 'variable name'
   },
   delimiter: {
     lambda: {
@@ -183,10 +183,46 @@ False.scan = function (s) {
   return result;
 };
 
+False.ast = {
+  lambda: 'lambda function',
+  value: 'literal value',
+  variable: 'variable name',
+  operator: 'operator'
+};
+
+False.makeLambda = function (tokens, pos) {
+  var token = False.token,
+      ast = False.ast,
+      lambda = { category: ast.lambda, begin: pos },
+      terms = lambda.terms = [],
+      delimiter = False.token.delimiter.lambda;
+  while (true) {
+    if (pos == tokens.length || tokens[pos].category === delimiter.close) {
+      lambda.end = pos;
+      console.log('close lambda');
+      return lambda;
+    }
+    var category = tokens[pos].category;
+    console.log(pos, category);
+    if (category === delimiter.open) {
+      console.log('open lambda');
+      var node = False.makeLambda(tokens, pos + 1);
+      terms.push(node);
+      pos = node.end + 1;
+      continue;
+    }
+    ['value', 'variable', 'operator'].forEach(function (group) {
+      if (token[group][category] !== undefined) {
+        terms.push({ category: ast[group], token: tokens[pos] });
+      }
+    });
+    ++pos;
+  }
+};
+
 False.parse = function (tokens) {
-  tokens.forEach(function (token, ix) {
-    console.log(token);
-  });
+  var tree = False.makeLambda(tokens, 0);
+  console.log(tree);
   return {};
 };
 
