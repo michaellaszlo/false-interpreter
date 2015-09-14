@@ -1,0 +1,43 @@
+
+--------
+Existing visual interpreters:
+
+  http://morphett.info/false/false.html
+
+  http://www.quirkster.com/iano/js/false-js.html
+
+
+--------
+Scanning
+
+We check for four syntax errors while scanning:
+- single quote not followed by a character (i.e., single quote ends program)
+- opening double quote not followed by closing double quote (i.e., odd number)
+- left brace not followed by right brace (we ignore left braces in between)
+- a character that does not correspond to any operator or value
+
+
+--------
+Parsing
+
+We're working with four kinds of tokens: value, variable, operator, delimiter
+- tokens of the first three kinds are terms in a linear sequence
+- the only recursive construct is open lambda ... close lambda
+  (we discarded the string delimiters in the scanning phase)
+
+What is a lambda function?
+- it is a program that gets executed in the same way as the top-level program
+- when we apply a lambda function, its elements must be evaluated one by one
+- for any FALSE program P, evaluating P is equivalent to evaluating Q = [ P ] !
+- therefore, let us consider the top-level program to be a lambda function
+
+The root of the parse tree is a lambda node.
+- its children are a sequence of { value, operator, variable, lambda } nodes
+
+We can do some type-checking in the parsing phase.
+
+
+--------
+Evaluation
+
+
