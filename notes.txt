@@ -26,15 +26,45 @@ We're working with four kinds of tokens: value, variable, operator, delimiter
   (we discarded the string delimiters in the scanning phase)
 
 What is a lambda function?
-- it is a program that gets executed in the same way as the top-level program
-- when we apply a lambda function, its elements must be evaluated one by one
-- for any FALSE program P, evaluating P is equivalent to evaluating Q = [ P ] !
+- it is a program within a program, and is executed like a top-level program
+- when we execute a lambda function, its elements are evaluated one by one
+- for any expression E, evaluating E is equivalent to evaluating F = [ E ] !
 - therefore, let us consider the top-level program to be a lambda function
+- given a program P, we construct the parse tree [ P ] and evaluate [ P ] !
 
 The root of the parse tree is a lambda node.
 - its children are a sequence of { value, operator, variable, lambda } nodes
 
 We can do some type-checking in the parsing phase.
+
+
+
+--------
+Types
+
+The FALSE specification provides for integers and characters: """
+  values are either integers like discussed before ("1", "100" etc.),
+  or characters precede by a quote: 'A (equals 65)
+"""
+- there are also strings, but there are no string operations
+- a string just prints itself
+- output: "." prints a value as an integer and "," as a character
+- strings print themselves
+- boolean values are implied: """
+  "=" ">"
+  these result in 0 (false) or -1 (true)
+"""
+- there is no special output for boolean values
+- the integer-boolean conversion is unspecified
+- we presume that all values other than 0 are understood to mean true
+
+We can introduce a boolean type while supporting previously written programs.
+- integer <-> character coercion is already implied
+- we'll make the character type explicit
+- we'll also have a boolean type, with conversion to and from the other types
+- logical operators coerce their operands to boolean values
+- arithmetic operators coerce their operands to integer values
+- let's add an output operator that prints boolean values
 
 
 --------
