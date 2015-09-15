@@ -41,7 +41,7 @@ False.token = {
 (function () {
   // Map characters to token descriptors.
   var token = False.token,
-      lookup = token.lookup = {},
+      lookup = False.lookup = {},
       operator = token.operator,
       delimiter = token.delimiter;
   function fill(s, name) {
@@ -81,11 +81,10 @@ False.token = {
     });
   }
   descend(token, []);
-  console.log(categoryOf);
 })();
 
-False.makeToken = function (category, begin, end) {
-  return { category: category, begin: begin, end: end };
+False.makeToken = function (descriptor, begin, end) {
+  return { descriptor: descriptor, begin: begin, end: end };
 };
 
 False.makeScanError = function (token, message) {
@@ -99,7 +98,7 @@ False.scan = function (s) {
       makeToken = False.makeToken,
       makeScanError = False.makeScanError,
       token = False.token,
-      lookup = token.lookup,
+      lookup = False.lookup,
       pos = 0;
   while (pos < s.length) {
     var ch = s.charAt(pos);
@@ -214,10 +213,15 @@ False.makeParseError = function (pos, message) {
 
 False.parseFrom = function (errors, tokens, startLambda) {
   var token = False.token,
-      syntax = False.syntax,
+      categoryOf = False.categoryOf,
+      keepToken = {};
+  ['value', 'variable', 'operator'].forEach(function (category) {
+    keepToken[category] = true;
+  });
+  var syntax = False.syntax,
       pos = startLambda || 0,
       tree = {
-        category: (startLambda ? syntax.lambda : syntax.program),
+        descriptor: (startLambda ? syntax.lambda : syntax.program),
         begin: (startLambda ? pos - 1 : pos),
       },
       children = tree.children = [],
@@ -231,7 +235,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
       }
       return tree;
     }
-    if (tokens[pos].category === delimiter.close) {  // Close lambda.
+    if (tokens[pos].descriptor === delimiter.close) {  // Close lambda.
       if (startLambda === undefined) {  // We are not in a lambda function.
         errors.push(makeParseError(pos, 'unexpected lambda delimiter'));
         ++pos;
@@ -240,21 +244,44 @@ False.parseFrom = function (errors, tokens, startLambda) {
       tree.end = pos + 1;
       return tree;  // If we are in a lambda, close it and return the tree.
     }
-    var category = tokens[pos].category;
-    if (category === delimiter.open) {  // Descend into a lambda function.
+    var descriptor = tokens[pos].descriptor;
+    if (descriptor === delimiter.open) {  // Descend into a lambda function.
       var lambda = False.parseFrom(errors, tokens, pos + 1);
       children.push(lambda);  // The lambda is a child of the current tree.
       pos = lambda.end;
       continue;
     }
-    // If the token is a value, variable, or operator, add it as a child.
+    // If the token is meaningful, add it as a child.
+    var category = categoryOf[descriptor][0];
+    if (keepToken[category]) {
+      children.push(tokens[pos]);
+    }
     ++pos;
   }
+};
+
+False.displayParseTree = function (tree, tabs) {
+  tabs = tabs || [];
+  var indent = tabs.join('');
+  console.log(indent + tree.descriptor + ': token ' + tree.begin +
+      ' to token ' + tree.end);
+  tabs.push('    ');
+  tree.children.forEach(function (child) {
+    if (child.descriptor === False.syntax.lambda) {
+      False.displayParseTree(child, tabs);
+    } else {
+      console.log(indent + child.descriptor + ': character ' + child.begin +
+          ' to character ' + child.end);
+    }
+  });
+  tabs.pop()
 };
 
 False.parse = function (tokens) {
   var errors = [],
       tree = False.parseFrom(errors, tokens);
+  console.log(tree);
+  False.displayParseTree(tree);
   return { tree: tree, errors: errors };
 };
 
@@ -562,7 +589,6 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  sourceInput.value = '[ [] ]';
   False.run();
   runButton.onclick = False.run;
 };
