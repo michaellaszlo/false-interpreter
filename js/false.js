@@ -212,7 +212,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
     if (pos == tokens.length) {  // We've run out of tokens.
       tree.end = pos;
       if (startLambda !== undefined) {  // We are inside a lambda function.
-        errors.push(makeParseError(startLambda, 'lambda function not closed'));
+        errors.push(makeParseError(tree.begin, 'lambda function not closed'));
       }
       return tree;
     }
@@ -226,9 +226,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
       return tree;  // If we are in a lambda, close it and return the tree.
     }
     var category = tokens[pos].category;
-    //console.log(pos, category);
     if (category === delimiter.open) {  // Descend into a lambda function.
-      //console.log('open lambda');
       var lambda = False.parseFrom(errors, tokens, pos + 1);
       children.push(lambda);  // The lambda is a child of the current tree.
       pos = lambda.end;
@@ -242,8 +240,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
 False.parse = function (tokens) {
   var errors = [],
       tree = False.parseFrom(errors, tokens);
-  console.log(JSON.stringify(errors), tree.category, tree.children);
-  return tree;
+  return { tree: tree, errors: errors };
 };
 
 False.evaluate = function (parseTree) {
@@ -452,18 +449,15 @@ False.run = function () {
   // Scan: characters -> tokens
   False.message('scanning');
   var sourceCode = False.sourceInput.value,
-      scanResult = False.scan(sourceCode),
-      errors = scanResult.errors;
-  if (errors.length != 0) {
-    False.errorMessage(errors.length + ' syntax errors');
-    errors.forEach(function (error) {
-      console.log(error);
+      scanResult = False.scan(sourceCode);
+  if (scanResult.errors.length != 0) {
+    scanResult.errors.forEach(function (error) {
       var token = error.token,
           text = sourceCode.substring(token.begin, token.end);
       if (text.length > 20) {
         text = text.substring(0, 20) + '...';
       }
-      False.errorMessage(error.message + ' at position ' + token.begin +
+      False.errorMessage('[char ' + token.begin + '] ' + error.message +
           ': ' + text);
     });
     return;
@@ -477,10 +471,22 @@ False.run = function () {
   False.message('parsing');
   var tokens = scanResult.tokens,
       parseResult = False.parse(tokens);
-
-  return;
+  if (parseResult.errors.length != 0) {
+    parseResult.errors.forEach(function (error) {
+      var token = tokens[error.pos],
+          text = sourceCode.substring(token.begin, token.end);
+      if (text.length > 20) {
+        text = text.substring(0, 20) + '...';
+      }
+      False.errorMessage('[char ' + token.begin + '] ' + error.message +
+          ': ' + text);
+    });
+    return;
+  }
 
   // Evaluate: parse tree -> output
+  console.log('Let us evaluate.');
+  return;
   False.evaluate(parseTree);
 
   // Trim whitespace from ends.
@@ -541,6 +547,7 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
+  sourceInput.value = '[';
   False.run();
   runButton.onclick = False.run;
 };
