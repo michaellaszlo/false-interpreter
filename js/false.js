@@ -66,7 +66,22 @@ False.token = {
     }
   }
   range('a', 'z', token.variable.name);
-  // Map token descriptors to top-level token categories.
+  // Map token descriptors to token category hierarchy.
+  var categoryOf = False.categoryOf = {};
+  function descend(group, levels) {
+    Object.keys(group).forEach(function (key) {
+      var item = group[key];
+      levels.push(key);
+      if (typeof(item) === 'string') {
+        categoryOf[item] = levels.slice();
+      } else {
+        descend(item, levels);
+      }
+      levels.pop();
+    });
+  }
+  descend(token, []);
+  console.log(categoryOf);
 })();
 
 False.makeToken = function (category, begin, end) {
@@ -547,7 +562,7 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  sourceInput.value = '[';
+  sourceInput.value = '[ [] ]';
   False.run();
   runButton.onclick = False.run;
 };
