@@ -35,7 +35,8 @@ What is a lambda function?
 The root of the parse tree is a lambda node.
 - its children are a sequence of { value, operator, variable, lambda } nodes
 
-We can do some type-checking in the parsing phase.
+We could do some type-checking in the parsing phase, but we'll leave
+it all to evaluation.
 
 
 

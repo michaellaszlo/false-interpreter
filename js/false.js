@@ -39,6 +39,7 @@ False.token = {
 };
 
 (function () {
+  // Map characters to token descriptors.
   var token = False.token,
       lookup = token.lookup = {},
       operator = token.operator,
@@ -65,13 +66,14 @@ False.token = {
     }
   }
   range('a', 'z', token.variable.name);
+  // Map token descriptors to top-level token categories.
 })();
 
 False.makeToken = function (category, begin, end) {
   return { category: category, begin: begin, end: end };
 };
 
-False.makeError = function (token, message) {
+False.makeScanError = function (token, message) {
   return { token: token, message: message };
 };
 
@@ -80,7 +82,7 @@ False.scan = function (s) {
       tokens = result.tokens = [],
       errors = result.errors = [],
       makeToken = False.makeToken,
-      makeError = False.makeError,
+      makeScanError = False.makeScanError,
       token = False.token,
       lookup = token.lookup,
       pos = 0;
@@ -117,7 +119,7 @@ False.scan = function (s) {
         continue;
       } else {
         tokens.push(makeToken(token.error.character, pos - 1, pos));
-        errors.push(makeError(tokens[tokens.length - 1],
+        errors.push(makeScanError(tokens[tokens.length - 1],
             'missing character'));
         break;
       } 
@@ -129,7 +131,7 @@ False.scan = function (s) {
       while (true) {
         if (seek == s.length) {
           tokens.push(makeToken(token.error.string, pos - 1, seek));
-          errors.push(makeError(tokens[tokens.length - 1],
+          errors.push(makeScanError(tokens[tokens.length - 1],
               'string not terminated'));
           pos = seek;
           break;
@@ -159,7 +161,7 @@ False.scan = function (s) {
       while (true) {
         if (seek == s.length) {
           tokens.push(makeToken(token.error.comment, pos - 1, seek));
-          errors.push(makeError(tokens[tokens.length - 1],
+          errors.push(makeScanError(tokens[tokens.length - 1],
               'comment not terminated'));
           pos = seek;
           break;
@@ -177,53 +179,71 @@ False.scan = function (s) {
 
     // If we didn't recognize the character, it's a syntax error.
     tokens.push(makeToken(token.error.invalid, pos - 1, pos));
-    errors.push(makeError(tokens[tokens.length - 1],
+    errors.push(makeScanError(tokens[tokens.length - 1],
         'invalid code'));
   }
   return result;
 };
 
-False.ast = {
+False.syntax = {
+  program: 'program',
   lambda: 'lambda function',
   value: 'literal value',
   variable: 'variable name',
   operator: 'operator'
 };
 
-False.makeLambda = function (tokens, pos) {
+False.makeParseError = function (pos, message) {
+  return { pos: pos, message: message };
+};
+
+False.parseFrom = function (errors, tokens, startLambda) {
   var token = False.token,
-      ast = False.ast,
-      lambda = { category: ast.lambda, begin: pos },
-      terms = lambda.terms = [],
+      syntax = False.syntax,
+      pos = startLambda || 0,
+      tree = {
+        category: (startLambda ? syntax.lambda : syntax.program),
+        begin: (startLambda ? pos - 1 : pos),
+      },
+      children = tree.children = [],
+      makeParseError = False.makeParseError,
       delimiter = False.token.delimiter.lambda;
   while (true) {
-    if (pos == tokens.length || tokens[pos].category === delimiter.close) {
-      lambda.end = pos;
-      console.log('close lambda');
-      return lambda;
+    if (pos == tokens.length) {  // We've run out of tokens.
+      tree.end = pos;
+      if (startLambda !== undefined) {  // We are inside a lambda function.
+        errors.push(makeParseError(startLambda, 'lambda function not closed'));
+      }
+      return tree;
+    }
+    if (tokens[pos].category === delimiter.close) {  // Close lambda.
+      if (startLambda === undefined) {  // We are not in a lambda function.
+        errors.push(makeParseError(pos, 'unexpected lambda delimiter'));
+        ++pos;
+        continue;  // Skip the token and continue parsing.
+      }
+      tree.end = pos + 1;
+      return tree;  // If we are in a lambda, close it and return the tree.
     }
     var category = tokens[pos].category;
-    console.log(pos, category);
-    if (category === delimiter.open) {
-      console.log('open lambda');
-      var node = False.makeLambda(tokens, pos + 1);
-      terms.push(node);
-      pos = node.end + 1;
+    //console.log(pos, category);
+    if (category === delimiter.open) {  // Descend into a lambda function.
+      //console.log('open lambda');
+      var lambda = False.parseFrom(errors, tokens, pos + 1);
+      children.push(lambda);  // The lambda is a child of the current tree.
+      pos = lambda.end;
       continue;
     }
-    ['value', 'variable', 'operator'].forEach(function (group) {
-      if (token[group][category] !== undefined) {
-        terms.push({ category: ast[group], token: tokens[pos] });
-      }
-    });
+    // If the token is a value, variable, or operator, add it as a child.
     ++pos;
   }
 };
 
 False.parse = function (tokens) {
-  var tree = False.makeLambda(tokens, 0);
-  console.log(tree);
-  return {};
+  var errors = [],
+      tree = False.parseFrom(errors, tokens);
+  console.log(JSON.stringify(errors), tree.category, tree.children);
+  return tree;
 };
 
 False.evaluate = function (parseTree) {
@@ -432,8 +452,8 @@ False.run = function () {
   // Scan: characters -> tokens
   False.message('scanning');
   var sourceCode = False.sourceInput.value,
-      result = False.scan(sourceCode),
-      errors = result.errors;
+      scanResult = False.scan(sourceCode),
+      errors = scanResult.errors;
   if (errors.length != 0) {
     False.errorMessage(errors.length + ' syntax errors');
     errors.forEach(function (error) {
@@ -455,8 +475,8 @@ False.run = function () {
   
   // Parse: tokens -> parse tree
   False.message('parsing');
-  var tokens = result.tokens,
-      parseTree = False.parse(tokens);
+  var tokens = scanResult.tokens,
+      parseResult = False.parse(tokens);
 
   return;
 
