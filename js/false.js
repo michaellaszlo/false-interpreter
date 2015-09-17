@@ -260,6 +260,12 @@ False.parseFrom = function (errors, tokens, startLambda) {
   }
 };
 
+False.parse = function (tokens) {
+  var errors = [],
+      tree = False.parseFrom(errors, tokens);
+  return { tree: tree, errors: errors };
+};
+
 False.displayParseTree = function (tree, tabs) {
   tabs = tabs || [];
   var indent = tabs.join('');
@@ -277,28 +283,12 @@ False.displayParseTree = function (tree, tabs) {
   tabs.pop()
 };
 
-False.parse = function (tokens) {
-  var errors = [],
-      tree = False.parseFrom(errors, tokens);
-  console.log(tree);
-  False.displayParseTree(tree);
-  return { tree: tree, errors: errors };
+False.highlight = function(token) {
+  sourceInput.selectionStart = token.begin;
+  sourceInput.selectionEnd = token.end;
 };
 
 False.evaluate = function (parseTree) {
-  var sourceInput = False.sourceInput;
-  function highlight(ix) {
-    if (ix == tokens.length) {
-      sourceInput.selectionStart = sourceInput.selectionEnd = undefined;
-      return;
-    }
-    var token = tokens[ix];
-    console.log(token);
-    sourceInput.selectionStart = token.begin;
-    sourceInput.selectionEnd = token.end;
-    window.setTimeout(function () { highlight(ix + 1) }, 500);
-  }
-  highlight(0);
 };
 
 False.removeChildren = function (container) {
@@ -527,16 +517,10 @@ False.run = function () {
   }
 
   // Evaluate: parse tree -> output
-  console.log('Let us evaluate.');
-  return;
-  False.evaluate(parseTree);
+  False.displayParseTree(parseResult.tree);
+  False.evaluate(parseResult.tree);
 
-  // Trim whitespace from ends.
-  source = source.replace(/^\s+|\s$/g, '');
-  // Discard line-terminating characters.
-  source = source.replace(/\s/g, ' ');
-  var tokens = source.split(/\s+/);
-
+  /*
   for (var tokenIx = 0; tokenIx < tokens.length; ++tokenIx) {
     var token = tokens[tokenIx];
     console.log('token ' + tokenIx + ': ' + token);
@@ -547,6 +531,7 @@ False.run = function () {
     }
   }
   False.message('done');
+  */
 };
 
 window.onload = function () {
@@ -584,11 +569,12 @@ window.onload = function () {
       "[$'.=~[' ,]?]s:" +
       "[w;![^o;!\,]?]o:" +
       "^b;![$'.=~][w;[,^]#b;!s;!o;!b;!s;!]#,";
-  */
   sourceInput.value = '[$0=["no more bottles"]?$1=["One bottle"]?$1>[$.' +
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
+  */
+  sourceInput.value = '[ 1 + ] f:\n2 f; !';
   False.run();
   runButton.onclick = False.run;
 };
