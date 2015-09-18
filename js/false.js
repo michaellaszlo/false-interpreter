@@ -38,6 +38,7 @@ False.token = {
   }
 };
 
+// Prepare dictionaries that help with tokenizing and parsing.
 (function () {
   // Map characters to token descriptors.
   var token = False.token,
@@ -66,6 +67,7 @@ False.token = {
     }
   }
   range('a', 'z', token.variable.name);
+
   // Map token descriptors to token category hierarchy.
   var categoryOf = False.categoryOf = {};
   function descend(group, levels) {
@@ -81,6 +83,12 @@ False.token = {
     });
   }
   descend(token, []);
+
+  // Decide which tokens will be retained for parsing.
+  var parseToken = False.parseToken = {};
+  ['value', 'variable', 'operator'].forEach(function (category) {
+    parseToken[category] = true;
+  });
 })();
 
 False.makeToken = function (descriptor, begin, end) {
@@ -214,10 +222,7 @@ False.makeParseError = function (pos, message) {
 False.parseFrom = function (errors, tokens, startLambda) {
   var token = False.token,
       categoryOf = False.categoryOf,
-      keepToken = {};
-  ['value', 'variable', 'operator'].forEach(function (category) {
-    keepToken[category] = true;
-  });
+      parseToken = False.parseToken;
   var syntax = False.syntax,
       pos = startLambda || 0,
       tree = {
@@ -253,7 +258,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
     }
     // If the token is meaningful, add it as a child.
     var category = categoryOf[descriptor][0];
-    if (keepToken[category]) {
+    if (parseToken[category]) {
       children.push(tokens[pos]);
     }
     ++pos;
@@ -289,6 +294,12 @@ False.highlight = function(token) {
 };
 
 False.evaluate = function (parseTree) {
+  var syntax = False.syntax,
+      token = False.token,
+      categoryOf = False.categoryOf;
+  parseTree.children.forEach(function (child) {
+    console.log(child.descriptor);
+  });
 };
 
 False.removeChildren = function (container) {
