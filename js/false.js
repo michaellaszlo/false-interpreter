@@ -226,7 +226,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
   var syntax = False.syntax,
       pos = startLambda || 0,
       tree = {
-        descriptor: (startLambda ? syntax.lambda : syntax.program),
+        category: (startLambda ? syntax.lambda : syntax.program),
         begin: (startLambda ? pos - 1 : pos),
       },
       children = tree.children = [],
@@ -259,7 +259,11 @@ False.parseFrom = function (errors, tokens, startLambda) {
     // If the token is meaningful, add it as a child.
     var category = categoryOf[descriptor][0];
     if (parseToken[category]) {
-      children.push(tokens[pos]);
+      var node = {
+        category: category,
+        token: tokens[pos]
+      };
+      children.push(node);
     }
     ++pos;
   }
@@ -274,15 +278,17 @@ False.parse = function (tokens) {
 False.displayParseTree = function (tree, tabs) {
   tabs = tabs || [];
   var indent = tabs.join('');
-  console.log(indent + tree.descriptor + ': token ' + tree.begin +
+  console.log(indent + tree.category + ': token ' + tree.begin +
       ' to token ' + tree.end);
   tabs.push('    ');
   tree.children.forEach(function (child) {
-    if (child.descriptor === False.syntax.lambda) {
+    if (child.category === False.syntax.lambda) {
+      console.log(child.category);
       False.displayParseTree(child, tabs);
     } else {
-      console.log(indent + child.descriptor + ': character ' + child.begin +
-          ' to character ' + child.end);
+      var token = child.token;
+      console.log(indent + child.category + ', ' + token.descriptor + ', ' +
+          'character ' + token.begin + ' to character ' + token.end);
     }
   });
   tabs.pop()
@@ -298,7 +304,7 @@ False.evaluate = function (parseTree) {
       token = False.token,
       categoryOf = False.categoryOf;
   parseTree.children.forEach(function (child) {
-    console.log(child.descriptor);
+    console.log(child.category);
   });
 };
 
