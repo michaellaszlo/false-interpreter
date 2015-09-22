@@ -301,10 +301,23 @@ False.highlight = function(token) {
 
 False.evaluate = function (parseTree) {
   var syntax = False.syntax,
-      token = False.token,
-      categoryOf = False.categoryOf;
-  parseTree.children.forEach(function (child) {
-    console.log(child.category);
+      token = False.token;
+/*
+False.syntax = {
+  program: 'program',         // does not appear as a child node
+  lambda: 'lambda function',  // push onto stack
+  value: 'literal value',     // push onto stack
+  variable: 'variable name',  // push onto stack
+  operator: 'operator'        // pop arguments and perform operation
+}
+*/
+  parseTree.children.forEach(function (astNode) {
+    if (astNode.category !== syntax.operator) {
+      console.log('not an operator: ' + astNode.category);
+      False.push(astNode);
+    } else {
+      console.log('operator: ' + JSON.stringify(astNode));
+    }
   });
 };
 
@@ -320,13 +333,16 @@ False.clearStack = function () {
   False.removeChildren(False.container.stack);
 };
 
-False.push = function (item) {
-  False.stack.push(item);
+False.push = function (astNode) {
+  False.stack.push(astNode);
   var container = document.createElement('div');
   container.className = 'item';
+  container.innerHTML = JSON.stringify(astNode);
+  /*
   container.innerHTML = '<span class="type">' + item.type + '</span>' +
       ' <span class="value">' + item.value + '</span>';
-  item.container = container;
+  */
+  astNode.container = container;
   False.container.stack.appendChild(container);
 };
 
