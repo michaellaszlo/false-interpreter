@@ -219,11 +219,11 @@ False.makeParseError = function (pos, message) {
   return { pos: pos, message: message };
 };
 
-False.parseFrom = function (errors, tokens, startLambda) {
+False.doParse = function (errors, tokens, startLambda) {
   var token = False.token,
       categoryOf = False.categoryOf,
-      parseToken = False.parseToken;
-  var syntax = False.syntax,
+      parseToken = False.parseToken,
+      syntax = False.syntax,
       pos = startLambda || 0,
       tree = {
         category: (startLambda ? syntax.lambda : syntax.program),
@@ -238,7 +238,7 @@ False.parseFrom = function (errors, tokens, startLambda) {
       if (startLambda !== undefined) {  // We are inside a lambda function.
         errors.push(makeParseError(tree.begin, 'lambda function not closed'));
       }
-      return tree;
+      break;
     }
     if (tokens[pos].descriptor === delimiter.close) {  // Close lambda.
       if (startLambda === undefined) {  // We are not in a lambda function.
@@ -247,11 +247,11 @@ False.parseFrom = function (errors, tokens, startLambda) {
         continue;  // Skip the token and continue parsing.
       }
       tree.end = pos + 1;
-      return tree;  // If we are in a lambda, close it and return the tree.
+      break;
     }
     var descriptor = tokens[pos].descriptor;
     if (descriptor === delimiter.open) {  // Descend into a lambda function.
-      var lambda = False.parseFrom(errors, tokens, pos + 1);
+      var lambda = False.doParse(errors, tokens, pos + 1);
       children.push(lambda);  // The lambda is a child of the current tree.
       pos = lambda.end;
       continue;
@@ -261,17 +261,21 @@ False.parseFrom = function (errors, tokens, startLambda) {
     if (parseToken[category]) {
       var node = {
         category: category,
-        token: tokens[pos]
+        token: tokens[pos],
+        string: False.sourceCode.substring(tokens[pos].begin, tokens[pos].end)
       };
       children.push(node);
     }
     ++pos;
   }
+  tree.string = False.sourceCode.substring(
+      tokens[tree.begin].begin, tokens[tree.end - 1].end);
+  return tree;
 };
 
 False.parse = function (tokens) {
   var errors = [],
-      tree = False.parseFrom(errors, tokens);
+      tree = False.doParse(errors, tokens);
   return { tree: tree, errors: errors };
 };
 
@@ -291,7 +295,7 @@ False.displayParseTree = function (tree, tabs) {
           'character ' + token.begin + ' to character ' + token.end);
     }
   });
-  tabs.pop()
+  tabs.pop();
 };
 
 False.highlight = function(token) {
@@ -314,6 +318,7 @@ False.syntax = {
   parseTree.children.forEach(function (astNode) {
     if (astNode.category !== syntax.operator) {
       console.log('not an operator: ' + astNode.category);
+      console.log(JSON.stringify(astNode));
       False.push(astNode);
     } else {
       console.log('operator: ' + JSON.stringify(astNode));
@@ -334,14 +339,14 @@ False.clearStack = function () {
 };
 
 False.push = function (astNode) {
+  var category = astNode.category,
+      token = astNode.token;
+  // Push the logical AST node onto the logical stack.
   False.stack.push(astNode);
+  // Make the physical representation of the AST node for the stack display.
   var container = document.createElement('div');
   container.className = 'item';
-  container.innerHTML = JSON.stringify(astNode);
-  /*
-  container.innerHTML = '<span class="type">' + item.type + '</span>' +
-      ' <span class="value">' + item.value + '</span>';
-  */
+  container.innerHTML = astNode.string;
   astNode.container = container;
   False.container.stack.appendChild(container);
 };
@@ -513,7 +518,7 @@ False.run = function () {
 
   // Scan: characters -> tokens
   False.message('scanning');
-  var sourceCode = False.sourceInput.value,
+  var sourceCode = False.sourceCode = False.sourceInput.value,
       scanResult = False.scan(sourceCode);
   if (scanResult.errors.length != 0) {
     scanResult.errors.forEach(function (error) {
