@@ -1,6 +1,6 @@
 var False = {};
 
-False.token = {
+False.lexicon = {
   value: {
     integer: 'integer value',
     character: 'character value',
@@ -41,10 +41,10 @@ False.token = {
 // Prepare dictionaries that help with tokenizing and parsing.
 (function () {
   // Map characters to token descriptors.
-  var token = False.token,
+  var lexicon = False.lexicon,
       lookup = False.lookup = {},
-      operator = token.operator,
-      delimiter = token.delimiter;
+      operator = lexicon.operator,
+      delimiter = lexicon.delimiter;
   function fill(s, name) {
     s.split('').forEach(function (ch) {
       lookup[ch] = name;
@@ -66,7 +66,7 @@ False.token = {
       lookup[String.fromCharCode(i)] = name;
     }
   }
-  range('a', 'z', token.variable.name);
+  range('a', 'z', lexicon.variable.name);
 
   // Map token descriptors to token category hierarchy.
   var categoryOf = False.categoryOf = {};
@@ -82,7 +82,7 @@ False.token = {
       levels.pop();
     });
   }
-  descend(token, []);
+  descend(lexicon, []);
 
   // Decide which tokens will be retained for parsing.
   var parseToken = False.parseToken = {};
@@ -105,7 +105,7 @@ False.scan = function (s) {
       errors = result.errors = [],
       makeToken = False.makeToken,
       makeScanError = False.makeScanError,
-      token = False.token,
+      lexicon = False.lexicon,
       lookup = False.lookup,
       pos = 0;
   while (pos < s.length) {
@@ -128,7 +128,7 @@ False.scan = function (s) {
       while (seek < s.length && /[0-9]/.test(s.charAt(seek))) {
         ++seek;
       }
-      tokens.push(makeToken(token.value.integer, pos - 1, seek));
+      tokens.push(makeToken(lexicon.value.integer, pos - 1, seek));
       pos = seek;
       continue;
     }
@@ -136,11 +136,11 @@ False.scan = function (s) {
     // Single quote followed by any character: character value.
     if (ch == "'") {
       if (pos < s.length) {
-        tokens.push(makeToken(token.value.character, pos, pos + 1));
+        tokens.push(makeToken(lexicon.value.character, pos, pos + 1));
         ++pos;
         continue;
       } else {
-        tokens.push(makeToken(token.error.character, pos - 1, pos));
+        tokens.push(makeToken(lexicon.error.character, pos - 1, pos));
         errors.push(makeScanError(tokens[tokens.length - 1],
             'missing character'));
         break;
@@ -152,7 +152,7 @@ False.scan = function (s) {
       var seek = pos;
       while (true) {
         if (seek == s.length) {
-          tokens.push(makeToken(token.error.string, pos - 1, seek));
+          tokens.push(makeToken(lexicon.error.string, pos - 1, seek));
           errors.push(makeScanError(tokens[tokens.length - 1],
               'string not terminated'));
           pos = seek;
@@ -168,7 +168,7 @@ False.scan = function (s) {
         // Check for the end of the string.
         if (ch == '"') {
           // Discard the delimiters when we make the token.
-          tokens.push(makeToken(token.value.string, pos, seek - 1));
+          tokens.push(makeToken(lexicon.value.string, pos, seek - 1));
           pos = seek;
           break;
         }
@@ -182,7 +182,7 @@ False.scan = function (s) {
       var seek = pos;
       while (true) {
         if (seek == s.length) {
-          tokens.push(makeToken(token.error.comment, pos - 1, seek));
+          tokens.push(makeToken(lexicon.error.comment, pos - 1, seek));
           errors.push(makeScanError(tokens[tokens.length - 1],
               'comment not terminated'));
           pos = seek;
@@ -191,7 +191,7 @@ False.scan = function (s) {
         ch = s.charAt(seek);
         ++seek;
         if (ch == '}') {
-          tokens.push(makeToken(token.comment, pos - 1, seek));
+          tokens.push(makeToken(lexicon.comment, pos - 1, seek));
           pos = seek;
           break;
         }
@@ -200,7 +200,7 @@ False.scan = function (s) {
     }
 
     // If we didn't recognize the character, it's a syntax error.
-    tokens.push(makeToken(token.error.invalid, pos - 1, pos));
+    tokens.push(makeToken(lexicon.error.invalid, pos - 1, pos));
     errors.push(makeScanError(tokens[tokens.length - 1],
         'invalid code'));
   }
@@ -220,7 +220,7 @@ False.makeParseError = function (pos, message) {
 };
 
 False.doParse = function (errors, tokens, startLambda) {
-  var token = False.token,
+  var lexicon = False.lexicon,
       categoryOf = False.categoryOf,
       parseToken = False.parseToken,
       syntax = False.syntax,
@@ -231,7 +231,7 @@ False.doParse = function (errors, tokens, startLambda) {
       },
       children = tree.children = [],
       makeParseError = False.makeParseError,
-      delimiter = False.token.delimiter.lambda;
+      delimiter = lexicon.delimiter.lambda;
   while (true) {
     if (pos == tokens.length) {  // We've run out of tokens.
       tree.end = pos;
@@ -305,7 +305,7 @@ False.highlight = function(token) {
 
 False.evaluate = function (parseTree) {
   var syntax = False.syntax,
-      token = False.token;
+      lexicon = False.lexicon;
 /*
 False.syntax = {
   program: 'program',         // does not appear as a child node
@@ -317,11 +317,20 @@ False.syntax = {
 */
   parseTree.children.forEach(function (astNode) {
     if (astNode.category !== syntax.operator) {
-      console.log('not an operator: ' + astNode.category);
-      console.log(JSON.stringify(astNode));
+      console.log('push onto stack: ' + astNode.category);
       False.push(astNode);
     } else {
       console.log('operator: ' + JSON.stringify(astNode));
+      var token = astNode.token;
+      if (token.descriptor === lexicon.operator.arithmetic) {
+      } else if (token.descriptor === lexicon.operator.comparison) {
+      } else if (token.descriptor === lexicon.operator.logical) {
+      } else if (token.descriptor === lexicon.operator.variable) {
+      } else if (token.descriptor === lexicon.operator.stack) {
+      } else if (token.descriptor === lexicon.operator.control) {
+      } else if (token.descriptor === lexicon.operator.io) {
+      } else if (token.descriptor === lexicon.operator.lambda) {
+      }
     }
   });
 };
@@ -555,7 +564,7 @@ False.run = function () {
   }
 
   // Evaluate: parse tree -> output
-  False.displayParseTree(parseResult.tree);
+  //False.displayParseTree(parseResult.tree);
   False.evaluate(parseResult.tree);
 
   /*
@@ -611,8 +620,9 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
+  */
+  sourceInput.value = '1 1 +';
   False.run();
   runButton.onclick = False.run;
 };
