@@ -407,13 +407,32 @@ False.execute = function (abstractSyntaxTree) {
             result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
         False.push(False.makeIntegerItem(result));
       }
-    } else if (descriptor === operator.comparison) {  // = >
-    } else if (descriptor === operator.logical) {     // & | ~
-    } else if (descriptor === operator.variable) {    // : ;
-    } else if (descriptor === operator.stack) {       // $ % \ @ ø
-    } else if (descriptor === operator.control) {     // ? #
-    } else if (descriptor === operator.io) {          // . , ^ ß
-    } else if (descriptor === operator.lambda) {      // !
+      continue;
+    }
+    if (descriptor === operator.comparison) {  // = >
+      var b = False.popInteger();
+      if (False.isError(b)) {
+        return b;
+      }
+      var a = False.popInteger();
+      if (False.isError(a)) {
+        return a;
+      }
+      var result = (symbol == '=' ? (a === b) : (a < b));
+      False.push(False.makeBooleanItem(result));
+      continue;
+    }
+    if (descriptor === operator.logical) {     // & | ~
+    }
+    if (descriptor === operator.variable) {    // : ;
+    }
+    if (descriptor === operator.stack) {       // $ % \ @ ø
+    }
+    if (descriptor === operator.control) {     // ? #
+    }
+    if (descriptor === operator.io) {          // . , ^ ß
+    }
+    if (descriptor === operator.lambda) {      // !
     }
   }
 };
@@ -438,7 +457,8 @@ False.push = function (item) {
       representation = (type === 'lambda' ? item.astNode.string : item.value);
   var container = document.createElement('div');
   container.className = 'item';
-  container.innerHTML = representation;
+  container.innerHTML = '<span class="type">' + type + '</span>' +
+      '<span class="value">' + representation + '</span>';
   item.container = container;
   False.container.stack.appendChild(container);
 };
@@ -471,16 +491,6 @@ False.message = function (s, classExtra) {
   container.className = 'message ' + (classExtra || undefined);
   container.innerHTML = s;
   False.container.output.appendChild(container);
-};
-
-False.makeInteger = function (intValue) {
-  return { type: False.types.integer, value: intValue };
-};
-False.makeCharacter = function (charValue) {
-  return { type: False.types.character, value: charValue };
-};
-False.makeBoolean = function (boolValue) {
-  return { type: False.types.boolean, value: boolValue };
 };
 
 False.processToken = function (token) {
