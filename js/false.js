@@ -1,6 +1,6 @@
 var False = {};
 
-False.lexicon = {
+False.lexical = {
   value: {
     integer: 'integer value',
     character: 'character value',
@@ -41,10 +41,10 @@ False.lexicon = {
 // Prepare dictionaries that help with tokenizing and parsing.
 (function () {
   // Map characters to token descriptors.
-  var lexicon = False.lexicon,
+  var lexical = False.lexical,
       lookup = False.lookup = {},
-      operator = lexicon.operator,
-      delimiter = lexicon.delimiter;
+      operator = lexical.operator,
+      delimiter = lexical.delimiter;
   function fill(s, name) {
     s.split('').forEach(function (ch) {
       lookup[ch] = name;
@@ -66,7 +66,7 @@ False.lexicon = {
       lookup[String.fromCharCode(i)] = name;
     }
   }
-  range('a', 'z', lexicon.variable.name);
+  range('a', 'z', lexical.variable.name);
 
   // Map token descriptors to token category hierarchy.
   var categoryOf = False.categoryOf = {};
@@ -82,7 +82,7 @@ False.lexicon = {
       levels.pop();
     });
   }
-  descend(lexicon, []);
+  descend(lexical, []);
 
   // Decide which tokens will be retained for parsing.
   var parseToken = False.parseToken = {};
@@ -105,7 +105,7 @@ False.scan = function (s) {
       errors = result.errors = [],
       makeToken = False.makeToken,
       makeScanError = False.makeScanError,
-      lexicon = False.lexicon,
+      lexical = False.lexical,
       lookup = False.lookup,
       pos = 0;
   while (pos < s.length) {
@@ -128,7 +128,7 @@ False.scan = function (s) {
       while (seek < s.length && /[0-9]/.test(s.charAt(seek))) {
         ++seek;
       }
-      tokens.push(makeToken(lexicon.value.integer, pos - 1, seek));
+      tokens.push(makeToken(lexical.value.integer, pos - 1, seek));
       pos = seek;
       continue;
     }
@@ -136,11 +136,11 @@ False.scan = function (s) {
     // Single quote followed by any character: character value.
     if (ch == "'") {
       if (pos < s.length) {
-        tokens.push(makeToken(lexicon.value.character, pos, pos + 1));
+        tokens.push(makeToken(lexical.value.character, pos, pos + 1));
         ++pos;
         continue;
       } else {
-        tokens.push(makeToken(lexicon.error.character, pos - 1, pos));
+        tokens.push(makeToken(lexical.error.character, pos - 1, pos));
         errors.push(makeScanError(tokens[tokens.length - 1],
             'missing character'));
         break;
@@ -152,7 +152,7 @@ False.scan = function (s) {
       var seek = pos;
       while (true) {
         if (seek == s.length) {
-          tokens.push(makeToken(lexicon.error.string, pos - 1, seek));
+          tokens.push(makeToken(lexical.error.string, pos - 1, seek));
           errors.push(makeScanError(tokens[tokens.length - 1],
               'string not terminated'));
           pos = seek;
@@ -168,7 +168,7 @@ False.scan = function (s) {
         // Check for the end of the string.
         if (ch == '"') {
           // Discard the delimiters when we make the token.
-          tokens.push(makeToken(lexicon.value.string, pos, seek - 1));
+          tokens.push(makeToken(lexical.value.string, pos, seek - 1));
           pos = seek;
           break;
         }
@@ -182,7 +182,7 @@ False.scan = function (s) {
       var seek = pos;
       while (true) {
         if (seek == s.length) {
-          tokens.push(makeToken(lexicon.error.comment, pos - 1, seek));
+          tokens.push(makeToken(lexical.error.comment, pos - 1, seek));
           errors.push(makeScanError(tokens[tokens.length - 1],
               'comment not terminated'));
           pos = seek;
@@ -191,7 +191,7 @@ False.scan = function (s) {
         ch = s.charAt(seek);
         ++seek;
         if (ch == '}') {
-          tokens.push(makeToken(lexicon.comment, pos - 1, seek));
+          tokens.push(makeToken(lexical.comment, pos - 1, seek));
           pos = seek;
           break;
         }
@@ -200,19 +200,11 @@ False.scan = function (s) {
     }
 
     // If we didn't recognize the character, it's a syntax error.
-    tokens.push(makeToken(lexicon.error.invalid, pos - 1, pos));
+    tokens.push(makeToken(lexical.error.invalid, pos - 1, pos));
     errors.push(makeScanError(tokens[tokens.length - 1],
         'invalid code'));
   }
   return result;
-};
-
-False.syntax = {
-  program: 'program',
-  lambda: 'lambda function',
-  value: 'literal value',
-  variable: 'variable name',
-  operator: 'operator'
 };
 
 False.makeParseError = function (pos, message) {
@@ -220,23 +212,23 @@ False.makeParseError = function (pos, message) {
 };
 
 False.doParse = function (errors, tokens, startLambda) {
-  var lexicon = False.lexicon,
+  var lexical = False.lexical,
       categoryOf = False.categoryOf,
       parseToken = False.parseToken,
-      syntax = False.syntax,
       pos = startLambda || 0,
       tree = {
-        category: (startLambda ? syntax.lambda : syntax.program),
-        begin: (startLambda ? pos - 1 : pos),
+        category: (startLambda ? 'lambda' : 'program'),
+        beginToken: (startLambda ? pos - 1 : pos),
       },
       children = tree.children = [],
       makeParseError = False.makeParseError,
-      delimiter = lexicon.delimiter.lambda;
+      delimiter = lexical.delimiter.lambda;
   while (true) {
     if (pos == tokens.length) {  // We've run out of tokens.
-      tree.end = pos;
+      tree.endToken = pos;
       if (startLambda !== undefined) {  // We are inside a lambda function.
-        errors.push(makeParseError(tree.begin, 'lambda function not closed'));
+        errors.push(makeParseError(tree.beginToken,
+            'lambda function not closed'));
       }
       break;
     }
@@ -246,14 +238,14 @@ False.doParse = function (errors, tokens, startLambda) {
         ++pos;
         continue;  // Skip the token and continue parsing.
       }
-      tree.end = pos + 1;
+      tree.endToken = pos + 1;
       break;
     }
     var descriptor = tokens[pos].descriptor;
     if (descriptor === delimiter.open) {  // Descend into a lambda function.
       var lambda = False.doParse(errors, tokens, pos + 1);
       children.push(lambda);  // The lambda is a child of the current tree.
-      pos = lambda.end;
+      pos = lambda.endToken;
       continue;
     }
     // If the token is meaningful, add it as a child.
@@ -269,7 +261,7 @@ False.doParse = function (errors, tokens, startLambda) {
     ++pos;
   }
   tree.string = False.sourceCode.substring(
-      tokens[tree.begin].begin, tokens[tree.end - 1].end);
+      tokens[tree.beginToken].begin, tokens[tree.endToken - 1].end);
   return tree;
 };
 
@@ -282,11 +274,11 @@ False.parse = function (tokens) {
 False.displayParseTree = function (tree, tabs) {
   tabs = tabs || [];
   var indent = tabs.join('');
-  console.log(indent + tree.category + ': token ' + tree.begin +
-      ' to token ' + tree.end);
+  console.log(indent + tree.category + ': token ' + tree.beginToken +
+      ' to token ' + tree.endToken);
   tabs.push('    ');
   tree.children.forEach(function (child) {
-    if (child.category === False.syntax.lambda) {
+    if (child.category === 'lambda') {
       console.log(child.category);
       False.displayParseTree(child, tabs);
     } else {
@@ -303,35 +295,55 @@ False.highlight = function(token) {
   sourceInput.selectionEnd = token.end;
 };
 
-False.evaluate = function (parseTree) {
-  var syntax = False.syntax,
-      lexicon = False.lexicon;
-/*
-False.syntax = {
-  program: 'program',         // does not appear as a child node
-  lambda: 'lambda function',  // push onto stack
-  value: 'literal value',     // push onto stack
-  variable: 'variable name',  // push onto stack
-  operator: 'operator'        // pop arguments and perform operation
-}
-*/
-  parseTree.children.forEach(function (astNode) {
-    if (astNode.category !== syntax.operator) {
-      console.log('push onto stack: ' + astNode.category);
-      False.push(astNode);
-    } else {
-      console.log('operator: ' + JSON.stringify(astNode));
-      var token = astNode.token;
-      if (token.descriptor === lexicon.operator.arithmetic) {
-      } else if (token.descriptor === lexicon.operator.comparison) {
-      } else if (token.descriptor === lexicon.operator.logical) {
-      } else if (token.descriptor === lexicon.operator.variable) {
-      } else if (token.descriptor === lexicon.operator.stack) {
-      } else if (token.descriptor === lexicon.operator.control) {
-      } else if (token.descriptor === lexicon.operator.io) {
-      } else if (token.descriptor === lexicon.operator.lambda) {
-      }
+False.makeLambdaItem = function (astNode) {
+  return { type: 'lambda', astNode: astNode };
+};
+False.makeIntegerItem = function (x) {
+  return { type: 'integer', value: x };
+};
+False.makeCharacterItem = function (ch) {
+  return { type: 'character', value: ch };
+};
+False.makeStringItem = function (s) {
+  return { type: 'string', value: s };
+};
+False.makeVariableItem = function (name) {
+  return { type: 'variable', value: name };
+};
+
+False.evaluate = function (astNode) {
+  var lexical = False.lexical;
+  astNode.children.forEach(function (astNode) {
+    // Categories: program, lambda, value, variable, operator.
+    // program will never appear as a child node
+    var category = astNode.category;
+    // lambda: wrap the AST sub-tree in a stack item
+    if (category === 'lambda') {
+      False.push(False.makeLambdaItem(astNode));
+      return;
     }
+    var token = astNode.token,
+        descriptor = token.token;
+    console.log(category, JSON.stringify(token));
+    // value: turn the literal into a value and wrap it in a stack item
+    if (category === 'value') {
+      if (descriptor === lexical.value.integer) {
+        False.push(False.makeIntegerItem(parseInt(astNode.string, 10)));
+      } else if (descriptor === lexical.value.character) {
+        False.push(False.makeCharacterItem(astNode.string));
+      } else {  // Must be a string.
+        False.push(False.makeStringItem(astNode.string));
+      }
+      return;
+    }
+    // variable: wrap the variable name in a stack item
+    if (category === 'variable') {
+      False.push(False.makeVariableItem(astNode.string));
+      return;
+    }
+    // If no other category matched, we must be dealing with an operator.
+    // Pop the required items off thestack and perform the operation.
+    console.log('Let\'s perform an operation.');
   });
 };
 
@@ -347,16 +359,15 @@ False.clearStack = function () {
   False.removeChildren(False.container.stack);
 };
 
-False.push = function (astNode) {
-  var category = astNode.category,
-      token = astNode.token;
-  // Push the logical AST node onto the logical stack.
-  False.stack.push(astNode);
-  // Make the physical representation of the AST node for the stack display.
+False.push = function (item) {
+  // Push the item onto the logical stack.
+  False.stack.push(item);
+  // Display a string in the physical stack.
+  var type = item.type,
+      representation = (type === 'lambda' ? item.astNode.string : item.value);
   var container = document.createElement('div');
   container.className = 'item';
-  container.innerHTML = astNode.string;
-  astNode.container = container;
+  container.innerHTML = representation;
   False.container.stack.appendChild(container);
 };
 
@@ -620,9 +631,9 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  sourceInput.value = '[ 1 + ] f:\n2 f; !';
-  */
   sourceInput.value = '1 1 +';
+  */
+  sourceInput.value = '[ 1 + ] f:\n2 f; !';
   False.run();
   runButton.onclick = False.run;
 };
