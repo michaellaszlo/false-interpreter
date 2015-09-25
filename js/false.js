@@ -330,7 +330,26 @@ False.popInteger = function () {
     return item.value.charCodeAt(0);
   }
   stack.push(item);
-  return False.makeError('invalid type: ' + item.type);
+  return False.makeError("can't get integer from " + item.type);
+};
+
+False.popBoolean = function () {
+  var stack = False.stack;
+  if (stack.length == 0) {
+    return False.makeError('empty stack' );
+  }
+  var item = False.pop();
+  if (item.type === 'integer') {
+    return item.value !== 0;
+  }
+  if (item.type === 'boolean') {
+    return item.value;
+  }
+  if (item.type === 'character') {
+    return item.value.charCodeAt(0) !== 0;
+  }
+  stack.push(item);
+  return False.makeError("can't get boolean from " + item.type);
 };
 
 False.makeError = function (message) {
@@ -423,6 +442,25 @@ False.execute = function (abstractSyntaxTree) {
       continue;
     }
     if (descriptor === operator.logical) {     // & | ~
+      var b = False.popBoolean();
+      if (False.isError(b)) {
+        return b;
+      }
+      if (symbol == '~') {
+        False.push(False.makeBooleanItem(!b));
+        continue;
+      }
+      var a = False.popBoolean();
+      if (False.isError(a)) {
+        return a;
+      }
+      if (symbol == '&') {
+        False.push(False.makeBooleanItem(a && b));
+      }
+      if (symbol == '|') {
+        False.push(False.makeBooleanItem(a || b));
+      }
+      continue;
     }
     if (descriptor === operator.variable) {    // : ;
     }
