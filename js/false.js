@@ -301,6 +301,9 @@ False.makeLambdaItem = function (astNode) {
 False.makeIntegerItem = function (x) {
   return { type: 'integer', value: x };
 };
+False.makeBooleanItem = function (b) {
+  return { type: 'boolean', value: b };
+}
 False.makeCharacterItem = function (ch) {
   return { type: 'character', value: ch };
 };
@@ -311,19 +314,48 @@ False.makeVariableItem = function (name) {
   return { type: 'variable', value: name };
 };
 
-False.evaluate = function (astNode) {
-  var lexical = False.lexical;
-  astNode.children.forEach(function (astNode) {
+False.popInteger = function () {
+  var stack = False.stack;
+  if (stack.length == 0) {
+    return False.makeError('empty stack' );
+  }
+  var item = False.pop();
+  if (item.type === 'integer') {
+    return item.value;
+  }
+  if (item.type === 'boolean') {
+    return item.value ? -1 : 0;
+  }
+  if (item.type === 'character') {
+    return item.value.charCodeAt(0);
+  }
+  stack.push(item);
+  return False.makeError('invalid type: ' + item.type);
+};
+
+False.makeError = function (message) {
+  return { error: message };
+};
+False.isError = function (result) {
+  return typeof(result) === 'object' && result.error !== undefined;
+};
+
+False.execute = function (abstractSyntaxTree) {
+  var lexical = False.lexical,
+      operator = lexical.operator,
+      children = abstractSyntaxTree.children;
+  for (var i = 0; i < children.length; ++i) {
+    var astNode = children[i];
     // Categories: program, lambda, value, variable, operator.
     // program will never appear as a child node
     var category = astNode.category;
     // lambda: wrap the AST sub-tree in a stack item
     if (category === 'lambda') {
       False.push(False.makeLambdaItem(astNode));
-      return;
+      continue;
     }
     var token = astNode.token,
-        descriptor = token.token;
+        descriptor = token.descriptor;
     console.log(category, JSON.stringify(token));
     // value: turn the literal into a value and wrap it in a stack item
     if (category === 'value') {
@@ -334,17 +366,56 @@ False.evaluate = function (astNode) {
       } else {  // Must be a string.
         False.push(False.makeStringItem(astNode.string));
       }
-      return;
+      continue;
     }
     // variable: wrap the variable name in a stack item
     if (category === 'variable') {
       False.push(False.makeVariableItem(astNode.string));
-      return;
+      continue;
     }
     // If no other category matched, we must be dealing with an operator.
     // Pop the required items off thestack and perform the operation.
-    console.log('Let\'s perform an operation.');
-  });
+    var symbol = astNode.string;
+    console.log('Let\'s perform an operation: ' + symbol);
+    if (descriptor === operator.arithmetic) {         // + - *  / _
+      var b = False.popInteger();
+      if (False.isError(b)) {
+        return b;
+      }
+      if (symbol == '_') {
+        False.push(False.makeIntegerItem(-b));
+        continue;
+      }
+      var a = False.popInteger();
+      if (False.isError(a)) {
+        return a;
+      }
+      if (symbol == '+') {
+        False.push(False.makeIntegerItem(a + b));
+      }
+      if (symbol == '-') {
+        False.push(False.makeIntegerItem(a - b));
+      }
+      if (symbol == '*') {
+        False.push(False.makeIntegerItem(a * b));
+      }
+      if (symbol == '/') {
+        if (b === 0) {
+          return False.makeError('division by zero: ' + a + ' / ' + b);
+        }
+        var ratio = a / b,
+            result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
+        False.push(False.makeIntegerItem(result));
+      }
+    } else if (descriptor === operator.comparison) {  // = >
+    } else if (descriptor === operator.logical) {     // & | ~
+    } else if (descriptor === operator.variable) {    // : ;
+    } else if (descriptor === operator.stack) {       // $ % \ @ ø
+    } else if (descriptor === operator.control) {     // ? #
+    } else if (descriptor === operator.io) {          // . , ^ ß
+    } else if (descriptor === operator.lambda) {      // !
+    }
+  }
 };
 
 False.removeChildren = function (container) {
@@ -368,17 +439,18 @@ False.push = function (item) {
   var container = document.createElement('div');
   container.className = 'item';
   container.innerHTML = representation;
+  item.container = container;
   False.container.stack.appendChild(container);
 };
 
 False.pop = function () {
   if (False.stack.length == 0) {
-    False.error('the stack is empty');
-  } else {
-    var item = False.stack.pop();
-    False.container.stack.removeChild(item.container);
-    return item;
+    return False.makeError('the stack is empty');
   }
+  var item = False.stack.pop();
+  False.container.stack.removeChild(item.container);
+  item.container = undefined;
+  return item;
 };
 
 False.error = function (message) {
@@ -409,21 +481,6 @@ False.makeCharacter = function (charValue) {
 };
 False.makeBoolean = function (boolValue) {
   return { type: False.types.boolean, value: boolValue };
-};
-
-False.getIntegerValue = function (item) {
-  if (typeof(item) != 'object' || item.type != False.types.integer) {
-    False.error('expected an integer');
-  } else {
-    return item.value;
-  }
-};
-False.getBooleanValue = function (item) {
-  if (typeof(item) != 'object' || item.type != False.types.boolean) {
-    False.error('expected a boolean');
-  } else {
-    return item.value;
-  }
 };
 
 False.processToken = function (token) {
@@ -576,20 +633,14 @@ False.run = function () {
 
   // Evaluate: parse tree -> output
   //False.displayParseTree(parseResult.tree);
-  False.evaluate(parseResult.tree);
-
-  /*
-  for (var tokenIx = 0; tokenIx < tokens.length; ++tokenIx) {
-    var token = tokens[tokenIx];
-    console.log('token ' + tokenIx + ': ' + token);
-    False.processToken(token);
-    if (False.crash) {
-      console.log('crashed');
-      break;
-    }
+  False.message('executing');
+  var executeResult = False.execute(parseResult.tree);
+  if (False.isError(executeResult)) {
+    False.errorMessage(executeResult.error);
+    return;
   }
+
   False.message('done');
-  */
 };
 
 window.onload = function () {
@@ -631,9 +682,9 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  sourceInput.value = '1 1 +';
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
+  sourceInput.value = '1 1 +';
   False.run();
   runButton.onclick = False.run;
 };
