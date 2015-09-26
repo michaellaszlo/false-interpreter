@@ -315,11 +315,10 @@ False.makeVariableItem = function (name) {
 };
 
 False.popInteger = function () {
-  var stack = False.stack;
-  if (stack.length == 0) {
-    return False.makeError('empty stack' );
-  }
   var item = False.pop();
+  if (False.isError(item)) {
+    return item;
+  }
   if (item.type === 'integer') {
     return item.value;
   }
@@ -332,13 +331,11 @@ False.popInteger = function () {
   stack.push(item);
   return False.makeError("can't get integer from " + item.type);
 };
-
 False.popBoolean = function () {
-  var stack = False.stack;
-  if (stack.length == 0) {
-    return False.makeError('empty stack' );
-  }
   var item = False.pop();
+  if (False.isError(item)) {
+    return item;
+  }
   if (item.type === 'integer') {
     return item.value !== 0;
   }
@@ -350,6 +347,17 @@ False.popBoolean = function () {
   }
   stack.push(item);
   return False.makeError("can't get boolean from " + item.type);
+};
+False.popVariableName = function () {
+  var item = False.pop();
+  if (False.isError(item)) {
+    return item;
+  }
+  if (item.type === 'variable') {
+    return item.value;
+  }
+  stack.push(item);
+  return False.makeError('expected variable name');
 };
 
 False.makeError = function (message) {
@@ -380,12 +388,16 @@ False.execute = function (abstractSyntaxTree) {
     if (category === 'value') {
       if (descriptor === lexical.value.integer) {
         False.push(False.makeIntegerItem(parseInt(astNode.string, 10)));
-      } else if (descriptor === lexical.value.character) {
-        False.push(False.makeCharacterItem(astNode.string));
-      } else {  // Must be a string.
-        False.push(False.makeStringItem(astNode.string));
+        continue;
       }
-      continue;
+      if (descriptor === lexical.value.character) {
+        False.push(False.makeCharacterItem(astNode.string));
+        continue;
+      }
+      if (descriptor === lexical.value.string) {
+        False.push(False.makeStringItem(astNode.string));
+        continue;
+      }
     }
     // variable: wrap the variable name in a stack item
     if (category === 'variable') {
@@ -395,8 +407,8 @@ False.execute = function (abstractSyntaxTree) {
     // If no other category matched, we must be dealing with an operator.
     // Pop the required items off thestack and perform the operation.
     var symbol = astNode.string;
-    console.log('Let\'s perform an operation: ' + symbol);
-    if (descriptor === operator.arithmetic) {         // + - *  / _
+    console.log('operator: ' + symbol);
+    if (descriptor === operator.arithmetic) {         // _ + - *  /
       var b = False.popInteger();
       if (False.isError(b)) {
         return b;
@@ -411,12 +423,15 @@ False.execute = function (abstractSyntaxTree) {
       }
       if (symbol == '+') {
         False.push(False.makeIntegerItem(a + b));
+        continue;
       }
       if (symbol == '-') {
         False.push(False.makeIntegerItem(a - b));
+        continue;
       }
       if (symbol == '*') {
         False.push(False.makeIntegerItem(a * b));
+        continue;
       }
       if (symbol == '/') {
         if (b === 0) {
@@ -425,8 +440,8 @@ False.execute = function (abstractSyntaxTree) {
         var ratio = a / b,
             result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
         False.push(False.makeIntegerItem(result));
+        continue;
       }
-      continue;
     }
     if (descriptor === operator.comparison) {  // = >
       var b = False.popInteger();
@@ -441,7 +456,7 @@ False.execute = function (abstractSyntaxTree) {
       False.push(False.makeBooleanItem(result));
       continue;
     }
-    if (descriptor === operator.logical) {     // & | ~
+    if (descriptor === operator.logical) {     // ~ & |
       var b = False.popBoolean();
       if (False.isError(b)) {
         return b;
@@ -456,13 +471,37 @@ False.execute = function (abstractSyntaxTree) {
       }
       if (symbol == '&') {
         False.push(False.makeBooleanItem(a && b));
+        continue;
       }
       if (symbol == '|') {
         False.push(False.makeBooleanItem(a || b));
+        continue;
       }
-      continue;
     }
-    if (descriptor === operator.variable) {    // : ;
+    if (descriptor === operator.variable) {    // ; :
+      var name = False.popVariableName();
+      if (False.isError(name)) {
+        return name;
+      }
+      if (symbol == ';') {  // Retrieve from variable.
+        var item = False.retrieve(name);
+        if (False.isError(item)) {
+          return item;
+        }
+        False.push(item);
+        continue;
+      }
+      if (symbol == ':') {  // Store to variable.
+        var item = False.pop();
+        if (False.isError(item)) {
+          return item;
+        }
+        var outcome = False.store(name, item);
+        if (False.isError(outcome)) {
+          return outcome;
+        }
+        continue;
+      }
     }
     if (descriptor === operator.stack) {       // $ % \ @ ø
     }
@@ -487,23 +526,29 @@ False.clearStack = function () {
   False.removeChildren(False.container.stack);
 };
 
+False.toString = function (item) {
+  if (item.type === 'lambda') {
+    return item.astNode.string;
+  }
+  return item.value;
+};
+
 False.push = function (item) {
   // Push the item onto the logical stack.
   False.stack.push(item);
   // Display a string in the physical stack.
   var type = item.type,
-      representation = (type === 'lambda' ? item.astNode.string : item.value);
-  var container = document.createElement('div');
+      container = document.createElement('div');
   container.className = 'item';
   container.innerHTML = '<span class="type">' + type + '</span>' +
-      '<span class="value">' + representation + '</span>';
+      '<span class="value">' + False.toString(item) + '</span>';
   item.container = container;
   False.container.stack.appendChild(container);
 };
 
 False.pop = function () {
   if (False.stack.length == 0) {
-    return False.makeError('the stack is empty');
+    return False.makeError('empty stack');
   }
   var item = False.stack.pop();
   False.container.stack.removeChild(item.container);
@@ -511,9 +556,29 @@ False.pop = function () {
   return item;
 };
 
-False.error = function (message) {
-  False.errorMessage(message);
-  False.crash = true;
+False.store = function (name, item) {
+  var info = False.variables[name];
+  if (info === undefined) {
+    return False.makeError('invalid variable name ' + name);
+  }
+  // Assume that info is { container: variable, span: { value: valueSpan } }
+  // Logical storage.
+  info.item = item;
+  // Physical representation.
+  info.container.className = 'variable';
+  info.span.value.innerHTML = False.toString(item);
+};
+
+False.retrieve = function (name) {
+  var info = False.variables[name];
+  if (info === undefined) {
+    return False.makeError('invalid variable name ' + name);
+  }
+  var item = info.item;
+  if (item === undefined) {
+    return False.makeError('nothing stored in variable ' + name);
+  }
+  return { type: item.type, value: item.value };
 };
 
 False.errorMessage = function (s) {
@@ -531,118 +596,12 @@ False.message = function (s, classExtra) {
   False.container.output.appendChild(container);
 };
 
-False.processToken = function (token) {
-
-  // Integer value.
-  if (/^[0-9]$/.test(token)) {
-    False.push(False.makeInteger(parseInt(token, 10)));
-    return;
-  }
-
-  // Character value.
-  if (/^'[A-Z]$/.test(token)) {
-    False.push(False.makeCharacter(token.charAt(1)));
-    return;
-  }
-
-  // Arithmetic operators.
-  if (token.length == 1 && '+-*/_=>'.indexOf(token) != -1) {
-    var b = False.getIntegerValue(False.pop());
-    if (token == '_') {
-      False.push(False.makeInteger(-b));
-      return;
-    }
-    var a = False.getIntegerValue(False.pop());
-    if (token == '+') {
-      False.push(False.makeInteger(a + b));
-    } else if (token == '-') {
-      False.push(False.makeInteger(a - b));
-    } else if (token == '*') {
-      False.push(False.makeInteger(a * b));
-    } else if (token == '/') {
-      var ratio = a / b,
-          result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
-      False.push(False.makeInteger(result));
-    } else if (token == '=') {
-      False.push(False.makeBoolean(a === b));
-    } else if (token == '>') {
-      False.push(False.makeBoolean(a > b));
-    }
-    return;
-  }
-
-  // Logical operators.
-  if (token.length == 1 && '&|~'.indexOf(token) != -1) {
-    var b = False.getBooleanValue(False.pop());
-    if (token == '~') {
-      False.push(False.makeBoolean(!b));
-      return;
-    }
-    var a = False.getBooleanValue(False.pop());
-    if (token == '&') {
-      False.push(False.makeBoolean(a & b));
-    } else if (token == '-') {
-      False.push(False.makeInteger(a | b));
-    }
-    return;
-  }
-
-  // Inequality operator.
-  if (token == '=~') {
-    var b = False.pop(), a = False.pop();
-    // Check for strict equality.
-    if (a.type === b.type && a.value === b.value) {
-      False.push(False.makeBoolean(false));
-      return;
-    }
-    // Coerce characters to integers.
-    if (a.type === False.types.character) {
-      a.type = 'integer';
-      a.value = a.value.charCodeAt(0);
-    }
-    if (b.type === False.types.character) {
-      b.type = 'integer';
-      b.value = b.value.charCodeAt(0);
-    }
-    False.push(False.makeBoolean(a.type !== b.type || a.value !== b.value));
-    return;
-  }
-
-  // Variable assignment.
-  if (/^[a-z]:$/.test(token)) {
-    var name = token.charAt(0),
-        variable = False.variables[name];
-    variable.value = False.pop();
-    variable.span.value.innerHTML = variable.value.value;
-    variable.container.className = 'variable';
-    return;
-  }
-
-  // Variable evaluation.
-  if (/^[a-z];$/.test(token)) {
-    var name = token.charAt(0),
-        variable = False.variables[name];
-    False.push(variable.value);
-    return;
-  }
-
-  // Function definition.
-  if (token == '[') {
-    // Now we would have to scan ahead. Hm.
-  }
-
-  
-  // Function evaluation.
-
-  False.error('invalid token "' + token + '"');
-};
-
 False.run = function () {
   False.clearStack();
   False.clearMessages();
 
   // Scan: characters -> tokens
-  False.message('scanning');
+  console.log('scanning');
   var sourceCode = False.sourceCode = False.sourceInput.value,
       scanResult = False.scan(sourceCode);
   if (scanResult.errors.length != 0) {
@@ -663,7 +622,7 @@ False.run = function () {
   }
   
   // Parse: tokens -> parse tree
-  False.message('parsing');
+  console.log('parsing');
   var tokens = scanResult.tokens,
       parseResult = False.parse(tokens);
   if (parseResult.errors.length != 0) {
@@ -732,7 +691,7 @@ window.onload = function () {
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
-  sourceInput.value = '1 1 +';
+  sourceInput.value = '1 a: a; a; ';
   False.run();
   runButton.onclick = False.run;
 };
