@@ -507,12 +507,19 @@ False.execute = function (abstractSyntaxTree) {
       }
     }
     if (descriptor === operator.stack) {       // $ % \ @ ø
-      if (symbol == '$') {
+      if (symbol == '$') {  // dup
         var item = False.peek();
         if (False.isError(item)) {
           return item;
         }
         False.push(False.copyItem(item));
+        continue;
+      }
+      if (symbol == '%') {  // drop
+        var outcome = False.pop();
+        if (False.isError(outcome)) {
+          return outcome;
+        }
         continue;
       }
     }
@@ -709,7 +716,7 @@ window.onload = function () {
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
-  sourceInput.value = '1 a: a; a; + $ ';
+  sourceInput.value = '1 a: a; a; + $ % %';
   False.run();
   runButton.onclick = False.run;
 };
