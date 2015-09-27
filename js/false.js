@@ -54,7 +54,7 @@ False.lexical = {
   fill('=>', operator.comparison);
   fill('&|~', operator.logical);
   fill(':;', operator.variable);
-  fill('$%\@ø', operator.stack);
+  fill('$%\\@ø', operator.stack);
   fill('?#', operator.control);
   fill('.,^ß', operator.io);
   fill('[', delimiter.lambda.open);
@@ -522,6 +522,19 @@ False.execute = function (abstractSyntaxTree) {
         }
         continue;
       }
+      if (symbol == '\\') {  // swap
+        var b = False.pop();
+        if (False.isError(b)) {
+          return b;
+        }
+        var a = False.pop();
+        if (False.isError(a)) {
+          return a;
+        }
+        False.push(b);
+        False.push(a);
+        continue;
+      }
     }
     if (descriptor === operator.control) {     // ? #
     }
@@ -716,7 +729,7 @@ window.onload = function () {
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
-  sourceInput.value = '1 a: a; a; + $ % %';
+  sourceInput.value = '1 a: a; a; + a; \\ '
   False.run();
   runButton.onclick = False.run;
 };
