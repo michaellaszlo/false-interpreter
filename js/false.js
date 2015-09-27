@@ -295,6 +295,9 @@ False.highlight = function(token) {
   sourceInput.selectionEnd = token.end;
 };
 
+False.copyItem = function (item) {
+  return { type: item.type, value: item.value };
+};
 False.makeLambdaItem = function (astNode) {
   return { type: 'lambda', astNode: astNode };
 };
@@ -504,6 +507,14 @@ False.execute = function (abstractSyntaxTree) {
       }
     }
     if (descriptor === operator.stack) {       // $ % \ @ ø
+      if (symbol == '$') {
+        var item = False.peek();
+        if (False.isError(item)) {
+          return item;
+        }
+        False.push(False.copyItem(item));
+        continue;
+      }
     }
     if (descriptor === operator.control) {     // ? #
     }
@@ -556,6 +567,13 @@ False.pop = function () {
   return item;
 };
 
+False.peek = function () {
+  if (False.stack.length == 0) {
+    return False.makeError('empty stack');
+  }
+  return False.stack[False.stack.length - 1];
+};
+
 False.store = function (name, item) {
   var info = False.variables[name];
   if (info === undefined) {
@@ -578,7 +596,7 @@ False.retrieve = function (name) {
   if (item === undefined) {
     return False.makeError('nothing stored in variable ' + name);
   }
-  return { type: item.type, value: item.value };
+  return False.copyItem(item);
 };
 
 False.errorMessage = function (s) {
@@ -691,7 +709,7 @@ window.onload = function () {
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
-  sourceInput.value = '1 a: a; a; ';
+  sourceInput.value = '1 a: a; a; + $ ';
   False.run();
   runButton.onclick = False.run;
 };
