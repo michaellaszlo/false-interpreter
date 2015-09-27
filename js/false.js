@@ -507,7 +507,7 @@ False.execute = function (abstractSyntaxTree) {
       }
     }
     if (descriptor === operator.stack) {       // $ % \ @ ø
-      if (symbol == '$') {  // dup
+      if (symbol == '$') {  // duplicate
         var item = False.peek();
         if (False.isError(item)) {
           return item;
@@ -533,6 +533,27 @@ False.execute = function (abstractSyntaxTree) {
         }
         False.push(b);
         False.push(a);
+        continue;
+      }
+      if (symbol == '@') {  // rotate
+        var c = False.pop();
+        if (False.isError(c)) {
+          return c;
+        }
+        var b = False.pop();
+        if (False.isError(b)) {
+          return b;
+        }
+        var a = False.pop();
+        if (False.isError(a)) {
+          return a;
+        }
+        False.push(b);
+        False.push(c);
+        False.push(a);
+        continue;
+      }
+      if (symbol == 'ø') {  // copy nth item (zero-based)
         continue;
       }
     }
@@ -729,7 +750,7 @@ window.onload = function () {
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
-  sourceInput.value = '1 a: a; a; + a; \\ '
+  sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
   False.run();
   runButton.onclick = False.run;
 };
