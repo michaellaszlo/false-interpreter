@@ -553,7 +553,16 @@ False.execute = function (abstractSyntaxTree) {
         False.push(a);
         continue;
       }
-      if (symbol == 'ø') {  // copy nth item (zero-based)
+      if (symbol == 'ø') {  // pick: copy nth item (zero-based)
+        var n = False.popInteger();
+        if (False.isError(n)) {
+          return n;
+        }
+        var item = False.peek(n);
+        if (False.isError(item)) {
+          return item;
+        }
+        False.push(False.copyItem(item));
         continue;
       }
     }
@@ -608,11 +617,12 @@ False.pop = function () {
   return item;
 };
 
-False.peek = function () {
-  if (False.stack.length == 0) {
-    return False.makeError('empty stack');
+False.peek = function (fromTop) {
+  fromTop = fromTop || 0;
+  if (fromTop < 0 || fromTop >= False.stack.length) {
+    return False.makeError('out of stack');
   }
-  return False.stack[False.stack.length - 1];
+  return False.stack[False.stack.length - 1 - fromTop];
 };
 
 False.store = function (name, item) {
@@ -751,6 +761,7 @@ window.onload = function () {
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
   sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
+  sourceInput.value = '7 8 9 2ø';
   False.run();
   runButton.onclick = False.run;
 };
