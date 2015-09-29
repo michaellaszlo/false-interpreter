@@ -414,19 +414,34 @@ False.execute = function (abstractSyntaxTree) {
     // Pop the required items off thestack and perform the operation.
     var symbol = astNode.string;
     console.log('operator: ' + symbol);
-    if (descriptor === operator.arithmetic) {         // _ + - *  /
-      var b = False.toInteger(False.pop());
+    // Arithmetic operators: _ + - *  /
+    if (descriptor === operator.arithmetic) {
+      var b = False.toInteger(False.peek());
       if (False.isError(b)) {
         return b;
       }
       if (symbol == '_') {
+        False.pop();
         False.push(False.makeIntegerItem(-b));
         continue;
       }
-      var a = False.toInteger(False.pop());
+      var a = False.toInteger(False.peek(1));
       if (False.isError(a)) {
         return a;
       }
+      if (symbol == '/') {
+        if (b === 0) {
+          return False.makeError('division by zero');
+        }
+        False.pop();
+        False.pop();
+        var ratio = a / b,
+            result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
+        False.push(False.makeIntegerItem(result));
+        continue;
+      }
+      False.pop();
+      False.pop();
       if (symbol == '+') {
         False.push(False.makeIntegerItem(a + b));
         continue;
@@ -439,42 +454,40 @@ False.execute = function (abstractSyntaxTree) {
         False.push(False.makeIntegerItem(a * b));
         continue;
       }
-      if (symbol == '/') {
-        if (b === 0) {
-          return False.makeError('division by zero: ' + a + ' / ' + b);
-        }
-        var ratio = a / b,
-            result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
-        False.push(False.makeIntegerItem(result));
-        continue;
-      }
     }
-    if (descriptor === operator.comparison) {  // = >
-      var b = False.toInteger(False.pop());
+    // Comparison operators: = >
+    if (descriptor === operator.comparison) {
+      var b = False.toInteger(False.peek());
       if (False.isError(b)) {
         return b;
       }
-      var a = False.toInteger(False.pop());
+      var a = False.toInteger(False.peek(1));
       if (False.isError(a)) {
         return a;
       }
       var result = (symbol == '=' ? (a === b) : (a < b));
+      False.pop();
+      False.pop();
       False.push(False.makeBooleanItem(result));
       continue;
     }
-    if (descriptor === operator.logical) {     // ~ & |
-      var b = False.toBoolean(False.pop());
+    // Logical operators: ~ & |
+    if (descriptor === operator.logical) {
+      var b = False.toBoolean(False.peek());
       if (False.isError(b)) {
         return b;
       }
       if (symbol == '~') {
+        False.pop();
         False.push(False.makeBooleanItem(!b));
         continue;
       }
-      var a = False.toBoolean(False.pop());
+      var a = False.toBoolean(False.peek(1));
       if (False.isError(a)) {
         return a;
       }
+      False.pop();
+      False.pop();
       if (symbol == '&') {
         False.push(False.makeBooleanItem(a && b));
         continue;
@@ -484,7 +497,8 @@ False.execute = function (abstractSyntaxTree) {
         continue;
       }
     }
-    if (descriptor === operator.variable) {    // ; :
+    // Variable operators: ; :
+    if (descriptor === operator.variable) {
       var item = False.peek();
       if (False.isError(item)) {
         return item;
@@ -516,7 +530,8 @@ False.execute = function (abstractSyntaxTree) {
         continue;
       }
     }
-    if (descriptor === operator.stack) {       // $ % \ @ ø
+    // Stack operators: $ % \ @ ø
+    if (descriptor === operator.stack) {
       if (symbol == '$') {  // duplicate
         var item = False.peek();
         if (False.isError(item)) {
@@ -533,46 +548,51 @@ False.execute = function (abstractSyntaxTree) {
         continue;
       }
       if (symbol == '\\') {  // swap
-        var b = False.pop();
+        var b = False.peek();
         if (False.isError(b)) {
           return b;
         }
-        var a = False.pop();
+        var a = False.peek(1);
         if (False.isError(a)) {
           return a;
         }
+        False.pop();
+        False.pop();
         False.push(b);
         False.push(a);
         continue;
       }
       if (symbol == '@') {  // rotate
-        var c = False.pop();
+        var c = False.peek();
         if (False.isError(c)) {
           return c;
         }
-        var b = False.pop();
+        var b = False.peek(1);
         if (False.isError(b)) {
           return b;
         }
-        var a = False.pop();
+        var b = False.peek(2);
         if (False.isError(a)) {
           return a;
         }
+        False.pop();
+        False.pop();
+        False.pop();
         False.push(b);
         False.push(c);
         False.push(a);
         continue;
       }
       if (symbol == 'ø') {  // pick: copy nth item (zero-based)
-        var n = False.toInteger(False.pop());
+        var n = False.toInteger(False.peek());
         if (False.isError(n)) {
           return n;
         }
-        var item = False.peek(n);
+        var item = False.peek(n + 1);
         if (False.isError(item)) {
-          False.push(False.makeIntegerItem(n));
           return item;
         }
+        False.pop();
         False.push(False.copyItem(item));
         continue;
       }
@@ -772,6 +792,7 @@ window.onload = function () {
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
   sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
+  sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   False.run();
   runButton.onclick = False.run;
