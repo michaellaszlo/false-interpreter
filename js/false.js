@@ -299,7 +299,7 @@ False.copyItem = function (item) {
   return { type: item.type, value: item.value };
 };
 False.makeLambdaItem = function (astNode) {
-  return { type: 'lambda', astNode: astNode };
+  return { type: 'lambda', value: astNode };
 };
 False.makeIntegerItem = function (x) {
   return { type: 'integer', value: x };
@@ -317,11 +317,7 @@ False.makeVariableItem = function (name) {
   return { type: 'variable', value: name };
 };
 
-False.popInteger = function () {
-  var item = False.pop();
-  if (False.isError(item)) {
-    return item;
-  }
+False.toInteger = function (item) {
   if (item.type === 'integer') {
     return item.value;
   }
@@ -331,36 +327,43 @@ False.popInteger = function () {
   if (item.type === 'character') {
     return item.value.charCodeAt(0);
   }
-  stack.push(item);
   return False.makeError("can't get integer from " + item.type);
 };
-False.popBoolean = function () {
-  var item = False.pop();
-  if (False.isError(item)) {
-    return item;
-  }
+False.toBoolean = function (item) {
   if (item.type === 'integer') {
-    return item.value !== 0;
+    if (item.value != -1 && item.value != 0) {
+      return False.makeError("can't get character from " + item.value);
+    }
+    return item.value === 0 ? false : true;
   }
   if (item.type === 'boolean') {
     return item.value;
   }
   if (item.type === 'character') {
-    return item.value.charCodeAt(0) !== 0;
+    if (item.value.charCodeAt(0) === 0) {
+      return false;
+    }
+    return False.makeError("can't get boolean from " + item.value);
   }
-  stack.push(item);
   return False.makeError("can't get boolean from " + item.type);
 };
-False.popVariableName = function () {
-  var item = False.pop();
-  if (False.isError(item)) {
-    return item;
+False.toCharacter = function (item) {
+  if (item.type === 'integer') {
+    if (item.value < 0 || item.value > 65535) {
+      return False.makeError("can't get character from " + item.value);
+    }
+    return String.fromCharCode(item.value);
   }
-  if (item.type === 'variable') {
+  if (item.type === 'boolean') {
+    if (item.value) {
+      return False.makeError("can't get character from true boolean value");
+    }
+    return String.fromCharCode(0);
+  }
+  if (item.type === 'character') {
     return item.value;
   }
-  stack.push(item);
-  return False.makeError('expected variable name');
+  return False.makeError("can't get character from " + item.type);
 };
 
 False.makeError = function (message) {
@@ -412,7 +415,7 @@ False.execute = function (abstractSyntaxTree) {
     var symbol = astNode.string;
     console.log('operator: ' + symbol);
     if (descriptor === operator.arithmetic) {         // _ + - *  /
-      var b = False.popInteger();
+      var b = False.toInteger(False.pop());
       if (False.isError(b)) {
         return b;
       }
@@ -420,7 +423,7 @@ False.execute = function (abstractSyntaxTree) {
         False.push(False.makeIntegerItem(-b));
         continue;
       }
-      var a = False.popInteger();
+      var a = False.toInteger(False.pop());
       if (False.isError(a)) {
         return a;
       }
@@ -447,11 +450,11 @@ False.execute = function (abstractSyntaxTree) {
       }
     }
     if (descriptor === operator.comparison) {  // = >
-      var b = False.popInteger();
+      var b = False.toInteger(False.pop());
       if (False.isError(b)) {
         return b;
       }
-      var a = False.popInteger();
+      var a = False.toInteger(False.pop());
       if (False.isError(a)) {
         return a;
       }
@@ -460,7 +463,7 @@ False.execute = function (abstractSyntaxTree) {
       continue;
     }
     if (descriptor === operator.logical) {     // ~ & |
-      var b = False.popBoolean();
+      var b = False.toBoolean(False.pop());
       if (False.isError(b)) {
         return b;
       }
@@ -468,7 +471,7 @@ False.execute = function (abstractSyntaxTree) {
         False.push(False.makeBooleanItem(!b));
         continue;
       }
-      var a = False.popBoolean();
+      var a = False.toBoolean(False.pop());
       if (False.isError(a)) {
         return a;
       }
@@ -482,20 +485,25 @@ False.execute = function (abstractSyntaxTree) {
       }
     }
     if (descriptor === operator.variable) {    // ; :
-      var name = False.popVariableName();
-      if (False.isError(name)) {
-        return name;
+      var item = False.peek();
+      if (False.isError(item)) {
+        return item;
       }
+      if (item.type != 'variable') {
+        return False.makeError('expected a variable');
+      }
+      var name = item.value;
       if (symbol == ';') {  // Retrieve from variable.
         var item = False.retrieve(name);
         if (False.isError(item)) {
           return item;
         }
+        False.pop();
         False.push(item);
         continue;
       }
       if (symbol == ':') {  // Store to variable.
-        var item = False.pop();
+        var item = False.peek(1);
         if (False.isError(item)) {
           return item;
         }
@@ -503,6 +511,8 @@ False.execute = function (abstractSyntaxTree) {
         if (False.isError(outcome)) {
           return outcome;
         }
+        False.pop();
+        False.pop();
         continue;
       }
     }
@@ -554,12 +564,13 @@ False.execute = function (abstractSyntaxTree) {
         continue;
       }
       if (symbol == 'ø') {  // pick: copy nth item (zero-based)
-        var n = False.popInteger();
+        var n = False.toInteger(False.pop());
         if (False.isError(n)) {
           return n;
         }
         var item = False.peek(n);
         if (False.isError(item)) {
+          False.push(False.makeIntegerItem(n));
           return item;
         }
         False.push(False.copyItem(item));
@@ -589,7 +600,7 @@ False.clearStack = function () {
 
 False.toString = function (item) {
   if (item.type === 'lambda') {
-    return item.astNode.string;
+    return item.value.string;
   }
   return item.value;
 };
@@ -761,7 +772,7 @@ window.onload = function () {
   */
   sourceInput.value = '[ 1 + ] f:\n2 f; !';
   sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
-  sourceInput.value = '7 8 9 2ø';
+  sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   False.run();
   runButton.onclick = False.run;
 };
