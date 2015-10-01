@@ -395,6 +395,7 @@ False.execute = function (abstractSyntaxTree) {
       children = abstractSyntaxTree.children;
   for (var i = 0; i < children.length; ++i) {
     if (++False.step.counter > False.option.step.limit) {
+      console.log('exceeded ' + False.option.step.limit + ' steps');
       return False.makeError('exceeded ' + False.option.step.limit + ' steps');
     }
     var astNode = children[i];
@@ -626,7 +627,10 @@ False.execute = function (abstractSyntaxTree) {
         return False.makeError('expected a lambda function');
       }
       False.pop();
-      False.execute(item.value);
+      var outcome = False.execute(item.value);
+      if (False.isError(outcome)) {
+        return outcome;
+      }
       continue;
     }
     // Control operators: ? #
@@ -644,7 +648,10 @@ False.execute = function (abstractSyntaxTree) {
         False.pop();
         console.log('condition: ' + condition);
         if (condition) {
-          False.execute(lambda);
+          var outcome = False.execute(lambda);
+          if (False.isError(outcome)) {
+            return outcome;
+          }
         }
         continue;
       }
@@ -660,17 +667,22 @@ False.execute = function (abstractSyntaxTree) {
         False.pop();
         False.pop();
         while (true) {
-          False.execute(conditionLambda);
-          var outcome = False.toBoolean(False.peek());
+          var outcome = False.execute(conditionLambda);
+          if (False.isError(outcome)) {
+            return outcome;
+          }
+          outcome = False.toBoolean(False.peek());
           if (False.isError(outcome)) {
             return outcome;
           }
           False.pop();
-          console.log('outcome: ' + outcome);
           if (!outcome) {
             break;
           }
-          False.execute(bodyLambda);
+          outcome = False.execute(bodyLambda);
+          if (False.isError(outcome)) {
+            return outcome;
+          }
         }
         continue;
       }
@@ -827,9 +839,9 @@ False.run = function () {
   //False.displayParseTree(parseResult.tree);
   False.message('executing');
   False.step.counter = 0;
-  var executeResult = False.execute(parseResult.tree);
-  if (False.isError(executeResult)) {
-    False.errorMessage(executeResult.error);
+  var outcome = False.execute(parseResult.tree);
+  if (False.isError(outcome)) {
+    False.errorMessage(outcome.error);
     return;
   }
 
@@ -880,7 +892,7 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 4 = ] \n [ "hello" ] # ';
+  sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 1_ > ] \n [ "hello" ] # ';
   False.run();
   runButton.onclick = False.run;
 };
