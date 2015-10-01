@@ -409,7 +409,6 @@ False.execute = function (abstractSyntaxTree) {
     }
     var token = astNode.token,
         descriptor = token.descriptor;
-    console.log(category, JSON.stringify(token));
     // value: turn the literal into a value and wrap it in a stack item
     if (category === 'value') {
       if (descriptor === lexical.value.integer) {
@@ -433,7 +432,6 @@ False.execute = function (abstractSyntaxTree) {
     // If no other category matched, we must be dealing with an operator.
     // Pop the required items off thestack and perform the operation.
     var symbol = astNode.string;
-    console.log('operator: ' + symbol);
     // Arithmetic operators: _ + - *  /
     if (descriptor === operator.arithmetic) {
       var b = False.toInteger(False.peek());
@@ -835,9 +833,10 @@ False.run = function () {
     return;
   }
 
-  // Evaluate: parse tree -> output
+  // Execute: parse tree -> output
   //False.displayParseTree(parseResult.tree);
-  False.message('executing');
+  console.log('executing');
+  False.message('running');
   False.step.counter = 0;
   var outcome = False.execute(parseResult.tree);
   if (False.isError(outcome)) {
@@ -870,8 +869,17 @@ window.onload = function () {
   }
   False.container.output = document.getElementById('output');
   False.container.stack = document.getElementById('stack');
-  var sourceInput = False.sourceInput = document.getElementById('sourceInput'),
-      runButton = document.getElementById('runButton');
+  var sourceInput = False.sourceInput = document.getElementById('sourceInput');
+  var makeInsertHandler = function (symbol) {
+    return function () {
+      var text = sourceInput.value,
+          left = text.substring(0, sourceInput.selectionStart),
+          right = text.substring(sourceInput.selectionEnd);
+      sourceInput.value = left + symbol + right;
+    };
+  };
+  document.getElementById('betaButton').onclick = makeInsertHandler('ß');
+  document.getElementById('oslashButton').onclick = makeInsertHandler('ø');
   /*
   sourceInput.value = '{ Conversation. }\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
@@ -893,6 +901,6 @@ window.onload = function () {
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 1_ > ] \n [ "hello" ] # ';
+  document.getElementById('runButton').onclick = False.run;
   False.run();
-  runButton.onclick = False.run;
 };
