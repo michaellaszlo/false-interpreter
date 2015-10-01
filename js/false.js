@@ -597,11 +597,25 @@ False.execute = function (abstractSyntaxTree) {
         continue;
       }
     }
-    if (descriptor === operator.control) {     // ? #
+    // Lambda evaluation operator: !
+    if (descriptor === operator.lambda) {
+      var item = False.peek();
+      if (False.isError(item)) {
+        return item;
+      }
+      if (item.type != 'lambda') {
+        return False.makeError('expected a lambda function');
+      }
+      False.pop();
+      var astNode = item.value;
+      False.execute(astNode);
+      continue;
     }
-    if (descriptor === operator.io) {          // . , ^ ß
+    // Control operators: ? #
+    if (descriptor === operator.control) {
     }
-    if (descriptor === operator.lambda) {      // !
+    // Control operators: . , ^ ß
+    if (descriptor === operator.io) {
     }
   }
 };
@@ -790,10 +804,10 @@ window.onload = function () {
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
   */
-  sourceInput.value = '[ 1 + ] f:\n2 f; !';
   sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
+  sourceInput.value = ' [ $ 1 + ] f:\n 10 f; ! f; ! f; !';
   False.run();
   runButton.onclick = False.run;
 };
