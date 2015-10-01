@@ -1,5 +1,15 @@
 var False = {};
 
+False.option = {
+  type: { coercion: true },
+  stack: { scrollDown: true },
+  step: { limit: 1000 }
+};
+
+False.step = {
+  counter: -1
+};
+
 False.lexical = {
   value: {
     integer: 'integer value',
@@ -384,6 +394,9 @@ False.execute = function (abstractSyntaxTree) {
       operator = lexical.operator,
       children = abstractSyntaxTree.children;
   for (var i = 0; i < children.length; ++i) {
+    if (++False.step.counter > False.option.step.limit) {
+      return False.makeError('exceeded ' + False.option.step.limit + ' steps');
+    }
     var astNode = children[i];
     // Categories: program, lambda, value, variable, operator.
     // program will never appear as a child node
@@ -613,8 +626,7 @@ False.execute = function (abstractSyntaxTree) {
         return False.makeError('expected a lambda function');
       }
       False.pop();
-      var astNode = item.value;
-      False.execute(astNode);
+      False.execute(item.value);
       continue;
     }
     // Control operators: ? #
@@ -646,6 +658,18 @@ False.execute = function (abstractSyntaxTree) {
         }
         False.pop();
         False.pop();
+        while (true) {
+          False.execute(conditionLambda);
+          var outcome = False.toBoolean(False.peek());
+          if (False.isError(outcome)) {
+            return outcome;
+          }
+          False.pop();
+          if (!outcome) {
+            break;
+          }
+          False.execute(bodyLambda);
+        }
         continue;
       }
     }
@@ -730,6 +754,15 @@ False.retrieve = function (name) {
   return False.copyItem(item);
 };
 
+False.clearVariables = function () {
+  Object.keys(False.variables).forEach(function (name) {
+    var info = False.variables[name];
+    info.item = undefined;
+    info.container.className = 'variable unused';
+    info.span.value.innerHTML = '';
+  });
+};
+
 False.errorMessage = function (s) {
   False.message(s, 'error');
 };
@@ -747,6 +780,7 @@ False.message = function (s, classExtra) {
 
 False.run = function () {
   False.clearStack();
+  False.clearVariables();
   False.clearMessages();
 
   // Scan: characters -> tokens
@@ -790,6 +824,7 @@ False.run = function () {
   // Evaluate: parse tree -> output
   //False.displayParseTree(parseResult.tree);
   False.message('executing');
+  False.step.counter = 0;
   var executeResult = False.execute(parseResult.tree);
   if (False.isError(executeResult)) {
     False.errorMessage(executeResult.error);
