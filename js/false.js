@@ -202,7 +202,7 @@ False.scan = function (s) {
     // If we didn't recognize the character, it's a syntax error.
     tokens.push(makeToken(lexical.error.invalid, pos - 1, pos));
     errors.push(makeScanError(tokens[tokens.length - 1],
-        'invalid code'));
+        'invalid token'));
   }
   return result;
 };
@@ -365,6 +365,12 @@ False.toCharacter = function (item) {
   }
   return False.makeError("can't get character from " + item.type);
 };
+False.toLambda = function (item) {
+  if (item.type !== 'lambda') {
+    return False.makeError('expected a lambda function');
+  }
+  return item.value;
+};
 
 False.makeError = function (message) {
   return { error: message };
@@ -465,7 +471,7 @@ False.execute = function (abstractSyntaxTree) {
       if (False.isError(a)) {
         return a;
       }
-      var result = (symbol == '=' ? (a === b) : (a < b));
+      var result = (symbol == '=' ? (a === b) : (a > b));
       False.pop();
       False.pop();
       False.push(False.makeBooleanItem(result));
@@ -613,6 +619,35 @@ False.execute = function (abstractSyntaxTree) {
     }
     // Control operators: ? #
     if (descriptor === operator.control) {
+      if (symbol == '?') {  // if: boolean lambda
+        var lambda = False.toLambda(False.peek());
+        if (False.isError(lambda)) {
+          return lambda;
+        }
+        var condition = False.toBoolean(False.peek(1));
+        if (False.isError(condition)) {
+          return condition;
+        }
+        False.pop();
+        False.pop();
+        if (condition) {
+          False.execute(lambda);
+        }
+        continue;
+      }
+      if (symbol == '#') {  // while: lambda lambda
+        var bodyLambda = False.toLambda(False.peek());
+        if (False.isError(bodyLambda)) {
+          return bodyLambda;
+        }
+        var conditionLambda = False.toLambda(False.peek(1));
+        if (False.isError(conditionLambda)) {
+          return conditionLambda;
+        }
+        False.pop();
+        False.pop();
+        continue;
+      }
     }
     // Control operators: . , ^ ß
     if (descriptor === operator.io) {
@@ -807,7 +842,7 @@ window.onload = function () {
   sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
-  sourceInput.value = ' [ $ 1 + ] f:\n 10 f; ! f; ! f; !';
+  sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   False.run();
   runButton.onclick = False.run;
 };
