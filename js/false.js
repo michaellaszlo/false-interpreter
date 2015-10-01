@@ -870,12 +870,17 @@ window.onload = function () {
   False.container.output = document.getElementById('output');
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
-  var makeInsertHandler = function (symbol) {
+  var makeInsertHandler = function (insertText) {
     return function () {
       var text = sourceInput.value,
-          left = text.substring(0, sourceInput.selectionStart),
-          right = text.substring(sourceInput.selectionEnd);
-      sourceInput.value = left + symbol + right;
+          start = sourceInput.selectionStart,
+          end = sourceInput.selectionEnd,
+          left = text.substring(0, start),
+          right = text.substring(end),
+          newStart = start + insertText.length;
+      sourceInput.value = left + insertText + right;
+      sourceInput.setSelectionRange(newStart, newStart);
+      sourceInput.focus();
     };
   };
   document.getElementById('betaButton').onclick = makeInsertHandler('ß');
