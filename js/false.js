@@ -642,6 +642,7 @@ False.execute = function (abstractSyntaxTree) {
         }
         False.pop();
         False.pop();
+        console.log('condition: ' + condition);
         if (condition) {
           False.execute(lambda);
         }
@@ -665,6 +666,7 @@ False.execute = function (abstractSyntaxTree) {
             return outcome;
           }
           False.pop();
+          console.log('outcome: ' + outcome);
           if (!outcome) {
             break;
           }
@@ -878,6 +880,7 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
+  sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 4 = ] \n [ "hello" ] # ';
   False.run();
   runButton.onclick = False.run;
 };
