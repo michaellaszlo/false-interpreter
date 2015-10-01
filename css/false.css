@@ -15,10 +15,12 @@ body {
 }
 
 #control {
-  height: 10%;
+  height: 70px;
+  width: 100%;
   border: 5px solid #f7eae7;
   padding: 10px;
   text-align: right;
+  position: absolute;
 }
 
 button {
@@ -37,10 +39,17 @@ button:hover {
   cursor: pointer;
 }
 
+#programPanes {
+  position: absolute;
+  top: 70px;
+  padding-bottom: 70px;
+  height: 100%;
+}
+
 #variablesAndOutput, #stack, #source {
   float: left;
   width: 33.3333333%;
-  height: 90%;
+  height: 100%;
 }
 #variables {
   height: 50%;

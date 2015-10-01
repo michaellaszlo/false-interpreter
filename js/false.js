@@ -687,7 +687,7 @@ False.execute = function (abstractSyntaxTree) {
         continue;
       }
     }
-    // Control operators: . , ^ ß
+    // Input/output operators: . , ^ ß
     if (descriptor === operator.io) {
     }
   }
