@@ -154,7 +154,9 @@ button:hover {
   resize: none;
   border: 0;
 }
-.display {
-  editable: false;
+#inputBufferDisplaySpan {
+  outline: none;
+  border: 1px solid #ddd;
+  background: #ddd;
 }
 

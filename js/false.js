@@ -876,15 +876,21 @@ window.onload = function () {
     False.display.variables.appendChild(variable);
     False.variables[ch] = { display: variable, span: { value: valueSpan } };
   }
+
   False.display.buffer = {};
-  False.display.buffer.input = document.getElementById('inputBufferDisplay');
   False.display.buffer.output = document.getElementById('outputBufferDisplay');
   False.display.console = document.getElementById('consoleDisplay');
-  False.display.buffer.input.readOnly = true;
   False.display.buffer.output.readOnly = true;
   False.display.console.readOnly = true;
+  False.display.buffer.input = {
+    span: document.getElementById('inputBufferDisplaySpan')
+  };
+  var inputSpan = False.display.buffer.input.span;
+  inputSpan.contentEditable = true;
+
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');
+
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
   var makeInsertHandler = function (insertText) {
     return function () {
