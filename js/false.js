@@ -780,14 +780,14 @@ False.errorMessage = function (s) {
 };
 
 False.clearMessages = function () {
-  False.removeChildren(False.container.output);
+  False.removeChildren(False.container.messages);
 };
 
 False.message = function (s, classExtra) {
   var container = document.createElement('div');
   container.className = 'message ' + (classExtra || undefined);
   container.innerHTML = s;
-  False.container.output.appendChild(container);
+  False.container.messages.appendChild(container);
 };
 
 False.run = function () {
@@ -833,7 +833,7 @@ False.run = function () {
     return;
   }
 
-  // Execute: parse tree -> output
+  // Execute: parse tree -> outcome
   //False.displayParseTree(parseResult.tree);
   console.log('executing');
   False.message('running');
@@ -867,7 +867,7 @@ window.onload = function () {
     False.container.variables.appendChild(variable);
     False.variables[ch] = { container: variable, span: { value: valueSpan } };
   }
-  False.container.output = document.getElementById('output');
+  False.container.messages = document.getElementById('messages');
   False.container.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
   var makeInsertHandler = function (insertText) {

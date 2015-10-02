@@ -46,15 +46,24 @@ button:hover {
   height: 100%;
 }
 
-#variablesAndOutput, #stack, #source {
+#consoleAndVariables, #stack, #source {
   float: left;
   width: 33.3333333%;
   height: 100%;
 }
-#variables {
-  height: 50%;
+#inputBuffer {
+  height: 13%;
+  border: 5px solid #ded2e7;
 }
-#output {
+#outputBuffer {
+  height: 13%;
+  border: 5px solid #cddee7;
+}
+#console {
+  height: 24%;
+  border: 5px solid #e7e1c3;
+}
+#variables {
   height: 50%;
 }
 #variables, #output, #stack, #sourceInput {
@@ -66,7 +75,7 @@ button:hover {
 }
 
 #variables {
-  border: 5px solid #b6e1d8;
+  border: 5px solid #e7dcc5;
   padding: 10px 20px;
 }
 .variable {
@@ -93,14 +102,21 @@ button:hover {
   display: none;
 }
 
-#output {
-  border: 5px solid #cfca9a;
+#messages {
+  width: 50%;
+  font-size: 14px;
+}
+#messages {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 2px solid #cfca9a;
   padding: 2px 20px;
 }
-#output .message {
+#messages .message {
   border-bottom: 1px dotted #ccc;
 }
-#output .message.error {
+#messages .message.error {
   color: #b9373c;
 }
 
