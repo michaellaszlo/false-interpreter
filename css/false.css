@@ -66,7 +66,7 @@ button:hover {
 #variables {
   height: 50%;
 }
-#variables, #output, #stack, #sourceInput {
+#variables, #output, #stack, #sourceInput, .display {
   font-family: monospace;
   overflow-y: scroll;
   font-size: 20px;
@@ -144,7 +144,7 @@ button:hover {
   border: 5px solid #91afcf;
   background: #eee;
 }
-#sourceInput {
+#sourceInput, .display {
   padding: 10px 15px;
   width: 100%;
   height: 100%;
@@ -153,5 +153,8 @@ button:hover {
   outline: none;
   resize: none;
   border: 0;
+}
+.display {
+  editable: false;
 }
 

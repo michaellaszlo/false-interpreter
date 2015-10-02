@@ -691,16 +691,11 @@ False.execute = function (abstractSyntaxTree) {
   }
 };
 
-False.removeChildren = function (container) {
-  var children = container.children;
+False.removeChildren = function (display) {
+  var children = display.children;
   for (var i = children.length - 1; i >= 0; --i) {
-    container.removeChild(children[i]);
+    display.removeChild(children[i]);
   }
-};
-
-False.clearStack = function () {
-  False.stack = [];
-  False.removeChildren(False.container.stack);
 };
 
 False.toString = function (item) {
@@ -715,12 +710,12 @@ False.push = function (item) {
   False.stack.push(item);
   // Display a string in the physical stack.
   var type = item.type,
-      container = document.createElement('div');
-  container.className = 'item';
-  container.innerHTML = '<span class="type">' + type + '</span>' +
+      display = document.createElement('div');
+  display.className = 'item';
+  display.innerHTML = '<span class="type">' + type + '</span>' +
       '<span class="value">' + False.toString(item) + '</span>';
-  item.container = container;
-  False.container.stack.appendChild(container);
+  item.display = display;
+  False.display.stack.appendChild(display);
 };
 
 False.pop = function () {
@@ -728,8 +723,8 @@ False.pop = function () {
     return False.makeError('empty stack');
   }
   var item = False.stack.pop();
-  False.container.stack.removeChild(item.container);
-  item.container = undefined;
+  False.display.stack.removeChild(item.display);
+  item.display = undefined;
   return item;
 };
 
@@ -746,11 +741,11 @@ False.store = function (name, item) {
   if (info === undefined) {
     return False.makeError('invalid variable name ' + name);
   }
-  // Assume that info is { container: variable, span: { value: valueSpan } }
+  // Assume that info is { display: variable, span: { value: valueSpan } }
   // Logical storage.
   info.item = item;
   // Physical representation.
-  info.container.className = 'variable';
+  info.display.className = 'variable';
   info.span.value.innerHTML = False.toString(item);
 };
 
@@ -766,13 +761,26 @@ False.retrieve = function (name) {
   return False.copyItem(item);
 };
 
+False.clearStack = function () {
+  False.stack = [];
+  False.removeChildren(False.display.stack);
+};
+
 False.clearVariables = function () {
   Object.keys(False.variables).forEach(function (name) {
     var info = False.variables[name];
     info.item = undefined;
-    info.container.className = 'variable unused';
+    info.display.className = 'variable unused';
     info.span.value.innerHTML = '';
   });
+};
+
+False.clearIO = function () {
+  False.buffer = { input: [], output: [] };
+  False.console = [];
+  False.display.buffer.input.value = '';
+  False.display.buffer.output.value = '';
+  False.display.console.value = '';
 };
 
 False.errorMessage = function (s) {
@@ -780,19 +788,20 @@ False.errorMessage = function (s) {
 };
 
 False.clearMessages = function () {
-  False.removeChildren(False.container.messages);
+  False.removeChildren(False.display.messages);
 };
 
 False.message = function (s, classExtra) {
-  var container = document.createElement('div');
-  container.className = 'message ' + (classExtra || undefined);
-  container.innerHTML = s;
-  False.container.messages.appendChild(container);
+  var display = document.createElement('div');
+  display.className = 'message ' + (classExtra || undefined);
+  display.innerHTML = s;
+  False.display.messages.appendChild(display);
 };
 
 False.run = function () {
   False.clearStack();
   False.clearVariables();
+  False.clearIO();
   False.clearMessages();
 
   // Scan: characters -> tokens
@@ -848,8 +857,8 @@ False.run = function () {
 };
 
 window.onload = function () {
-  False.container = {};
-  False.container.variables = document.getElementById('variables');
+  False.display = {};
+  False.display.variables = document.getElementById('variables');
   var a = 'a'.charCodeAt(0),
       z = 'z'.charCodeAt(0);
   False.variables = {};
@@ -864,11 +873,18 @@ window.onload = function () {
     valueSpan.className = 'value';
     variable.appendChild(nameSpan);
     variable.appendChild(valueSpan);
-    False.container.variables.appendChild(variable);
-    False.variables[ch] = { container: variable, span: { value: valueSpan } };
+    False.display.variables.appendChild(variable);
+    False.variables[ch] = { display: variable, span: { value: valueSpan } };
   }
-  False.container.messages = document.getElementById('messages');
-  False.container.stack = document.getElementById('stack');
+  False.display.buffer = {};
+  False.display.buffer.input = document.getElementById('inputBufferDisplay');
+  False.display.buffer.output = document.getElementById('outputBufferDisplay');
+  False.display.console = document.getElementById('consoleDisplay');
+  False.display.buffer.input.readOnly = true;
+  False.display.buffer.output.readOnly = true;
+  False.display.console.readOnly = true;
+  False.display.messages = document.getElementById('messages');
+  False.display.stack = document.getElementById('stack');
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
   var makeInsertHandler = function (insertText) {
     return function () {
@@ -885,12 +901,13 @@ window.onload = function () {
   };
   document.getElementById('betaButton').onclick = makeInsertHandler('ß');
   document.getElementById('oslashButton').onclick = makeInsertHandler('ø');
-  /*
+
+  // Sample programs.
   sourceInput.value = '{ Conversation. }\n' +
       '"\\"Hello there.\\""\n"\\"Hi.\\""\n'+
       '{ Exeunt. }';
   sourceInput.value = "99 9[1-$][\$@$@$@$@\/*=[1-$$[%\1-$@]?0=[\$.' ,\]?]?]#";
-  sourceInput.value = "[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
+  sourceInput.value ="[\$@$@\/+2/]r: [127r;!r;!r;!r;!r;!r;!r;!\%]s: 2000000s;!";
   sourceInput.value = "[[$' =][%^]#]b:" +
       "[$$'.=\' =|~]w:" +
       "[$'.=~[' ,]?]s:" +
@@ -900,12 +917,12 @@ window.onload = function () {
     '" bottles"]?%" of beer"]b:' +
     '100[$0>][$b;!" on the wall, "$b;!".' +
     '"1-"Take one down, pass it around, "$b;!" on the wall.\n"]#%';
-  */
   sourceInput.value = '1 a: a; a; + $  a; + a; \\ @';
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 1_ > ] \n [ "hello" ] # ';
+
   document.getElementById('runButton').onclick = False.run;
   False.run();
 };
