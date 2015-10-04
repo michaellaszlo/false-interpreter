@@ -409,18 +409,18 @@ False.execute = function (abstractSyntaxTree) {
     }
     var token = astNode.token,
         descriptor = token.descriptor;
-    // value: turn the literal into a value and wrap it in a stack item
+    // value: append strings to output, push other values onto the stack
     if (category === 'value') {
+      if (descriptor === lexical.value.string) {
+        False.io.write(astNode.string);
+        continue;
+      }
       if (descriptor === lexical.value.integer) {
         False.push(False.makeIntegerItem(parseInt(astNode.string, 10)));
         continue;
       }
       if (descriptor === lexical.value.character) {
         False.push(False.makeCharacterItem(astNode.string));
-        continue;
-      }
-      if (descriptor === lexical.value.string) {
-        False.push(False.makeStringItem(astNode.string));
         continue;
       }
     }
@@ -778,9 +778,15 @@ False.clearVariables = function () {
 False.clearIO = function () {
   False.buffer = { input: [], output: [] };
   False.console = [];
-  False.display.buffer.input.value = '';
-  False.display.buffer.output.value = '';
-  False.display.console.value = '';
+  False.display.buffer.input.span.innerHTML = '';
+  False.display.buffer.output.span.innerHTML = '';
+  False.display.console.span.innerHTML = '';
+};
+False.io = {}
+False.io.write = function (text) {
+  False.buffer.output.push(text);
+  console.log('"' + text + '"');
+  False.display.buffer.output.span.innerHTML += text;
 };
 
 False.errorMessage = function (s) {
@@ -878,15 +884,16 @@ window.onload = function () {
   }
 
   False.display.buffer = {};
-  False.display.buffer.output = document.getElementById('outputBufferDisplay');
-  False.display.console = document.getElementById('consoleDisplay');
-  False.display.buffer.output.readOnly = true;
-  False.display.console.readOnly = true;
   False.display.buffer.input = {
     span: document.getElementById('inputBufferDisplaySpan')
   };
-  var inputSpan = False.display.buffer.input.span;
-  inputSpan.contentEditable = true;
+  False.display.buffer.input.span.contentEditable = true;
+  False.display.buffer.output = {
+    span: document.getElementById('outputBufferDisplaySpan')
+  };
+  False.display.console = {
+    span: document.getElementById('inputBufferDisplaySpan')
+  };
 
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');

@@ -154,9 +154,13 @@ button:hover {
   resize: none;
   border: 0;
 }
-#inputBufferDisplaySpan {
+#inputBufferDisplaySpan, #outputBufferDisplaySpan {
   outline: none;
   border: 1px solid #ddd;
-  background: #ddd;
 }
-
+#inputBufferDisplaySpan {
+  background: #ded2e7;
+}
+#outputBufferDisplaySpan {
+  background: #cddee7;
+}
