@@ -745,7 +745,7 @@ False.store = function (name, item) {
   // Logical storage.
   info.item = item;
   // Physical representation.
-  info.display.className = 'variable';
+  M.classRemove(info.display, 'unused');
   info.span.value.innerHTML = False.toString(item);
 };
 
@@ -770,7 +770,7 @@ False.clearVariables = function () {
   Object.keys(False.variables).forEach(function (name) {
     var info = False.variables[name];
     info.item = undefined;
-    info.display.className = 'variable unused';
+    M.classAdd(info.display, 'unused');
     info.span.value.innerHTML = '';
   });
 };
