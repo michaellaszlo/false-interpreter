@@ -73,6 +73,16 @@ We can introduce a boolean type while supporting previously written programs.
 
 
 --------
-Evaluation
+I/O model
+
+Three displays: output, input, console.
+- output operations print to the output buffer
+- input operations read from the input buffer
+- a button allows the user to insert an EOF character into the input buffer
+
+What does the flush operation do?
+- first it prints the contents of the output buffer to the console
+- then it prints the scanned portion of the input buffer to the console
+- the unread portion of the input buffer remains in the input buffer
 
 
