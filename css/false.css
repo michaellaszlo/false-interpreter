@@ -52,19 +52,19 @@ button:hover {
   height: 100%;
 }
 #inputBuffer {
-  height: 13%;
+  height: 20%;
   border: 5px solid #ded2e7;
 }
 #outputBuffer {
-  height: 13%;
+  height: 20%;
   border: 5px solid #cddee7;
 }
 #console {
-  height: 24%;
+  height: 20%;
   border: 5px solid #e7e1c3;
 }
 #variables {
-  height: 50%;
+  height: 40%;
 }
 #variables, #output, #stack, #sourceInput, .display {
   font-family: monospace;
