@@ -687,6 +687,14 @@ False.execute = function (abstractSyntaxTree) {
     }
     // Input/output operators: . , ^ ß
     if (descriptor === operator.io) {
+      if (symbol == '.') {  // print integer
+        var a = False.toInteger(False.peek());
+        if (False.isError(a)) {
+          return a;
+        }
+        False.io.write('' + a);
+        continue;
+      }
     }
   }
 };
@@ -935,8 +943,7 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 1_ > ] \n [ "hello\n" ] # ';
-
+  sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 1_ > ] \n [ a;. " hello\n" ] # ';
   document.getElementById('runButton').onclick = False.run;
   False.run();
 };
