@@ -695,6 +695,14 @@ False.execute = function (abstractSyntaxTree) {
         False.io.write('' + a);
         continue;
       }
+      if (symbol == ',') {  // print integer
+        var c = False.toCharacter(False.peek());
+        if (False.isError(c)) {
+          return c;
+        }
+        False.io.write(c);
+        continue;
+      }
     }
   }
 };
