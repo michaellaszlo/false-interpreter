@@ -703,6 +703,16 @@ False.execute = function (abstractSyntaxTree) {
         False.io.write(c);
         continue;
       }
+      if (symbol == '^') {
+        continue;
+      }
+      if (symbol == 'ß') {
+        var output = False.io.clearOutput(),
+            input = False.io.clearInput();
+        False.io.consoleWriteOutput(output);
+        False.io.consoleWriteInput(input);
+        continue;
+      }
     }
   }
 };
@@ -804,6 +814,16 @@ False.io.write = function (text) {
   False.buffer.output.push(text);
   console.log('"' + text + '"');
   False.display.buffer.output.span.innerHTML += text;
+};
+False.io.clearOutput = function () {
+  return text;
+};
+False.io.clearInput = function () {
+  return text;
+};
+False.io.consoleWriteOutput = function () {
+};
+False.io.consoleWriteInput = function () {
 };
 
 False.errorMessage = function (s) {
