@@ -812,16 +812,22 @@ False.io = {}
 False.io.write = function (text) {
   text = text.replace(/\n/, '<br>');
   False.buffer.output.push(text);
-  console.log('"' + text + '"');
   False.display.buffer.output.span.innerHTML += text;
 };
 False.io.clearOutput = function () {
+  var buffer = False.buffer.output;
+  text = buffer.join('');
+  buffer.splice(0, buffer.length);
+  False.display.buffer.output.span.innerHTML = '';
   return text;
 };
 False.io.clearInput = function () {
   return text;
 };
-False.io.consoleWriteOutput = function () {
+False.io.consoleWriteOutput = function (text) {
+  text = text.replace(/\n/, '<br>');
+  False.console.push(text);
+  False.display.console.span.innerHTML += text;
 };
 False.io.consoleWriteInput = function () {
 };
@@ -929,7 +935,7 @@ window.onload = function () {
     span: document.getElementById('outputBufferDisplaySpan')
   };
   False.display.console = {
-    span: document.getElementById('inputBufferDisplaySpan')
+    span: document.getElementById('consoleSpan')
   };
 
   False.display.messages = document.getElementById('messages');
@@ -971,7 +977,7 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = ' 5 a: \n [ a; 1 - $ a: 1_ > ] \n [ a;. " hello\n" ] # ';
+  sourceInput.value = '3 a:\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. " hello\n" ] # ß';
   document.getElementById('runButton').onclick = False.run;
   False.run();
 };
