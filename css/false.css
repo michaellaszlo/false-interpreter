@@ -157,9 +157,9 @@ button:hover {
 #inputBufferDisplaySpan, #outputBufferDisplaySpan {
   outline: none;
 }
-#inputBufferDisplaySpan {
+#inputBufferDisplaySpan, .inputText {
   background: #ded2e7;
 }
-#outputBufferDisplaySpan {
+#outputBufferDisplaySpan, .outputText {
   background: #cddee7;
 }

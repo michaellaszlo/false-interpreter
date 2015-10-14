@@ -709,7 +709,8 @@ False.execute = function (abstractSyntaxTree) {
       if (symbol == 'ß') {
         var output = False.io.clearOutput(),
             input = False.io.clearInput();
-        False.io.consoleWriteOutput(output);
+        False.io.consoleWriteOutput('<span class="outputText">' + output +
+            '</span');
         False.io.consoleWriteInput(input);
         continue;
       }
