@@ -692,6 +692,7 @@ False.execute = function (abstractSyntaxTree) {
         if (False.isError(a)) {
           return a;
         }
+        False.pop();
         False.io.write('' + a);
         continue;
       }
@@ -700,6 +701,7 @@ False.execute = function (abstractSyntaxTree) {
         if (False.isError(c)) {
           return c;
         }
+        False.pop();
         False.io.write(c);
         continue;
       }
