@@ -38,7 +38,18 @@ button:hover {
   border-color: #444;
   cursor: pointer;
 }
+#slowRunButtons, #characterButtons {
+  display: inline;
+  margin-left: 10px;
+}
 button.fastRun {
+  color: #197847;
+  border-color: #197847;
+}
+button.fastRun:hover {
+  background: #dce7dc;
+  color: #0a6a33;
+  border-color: #0a6a33;
 }
 button.slowRun {
   color: #9e6a3b;
