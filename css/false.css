@@ -40,11 +40,28 @@ button:hover {
 }
 #visualRunButtons, #characterButtons {
   display: inline;
-  margin-left: 10px;
+}
+#runButton, #resetButton {
+  margin-right: 10px;
+}
+#visualRunButtons {
+  margin-right: 15px;
+}
+#characterButtons {
+  margin-right: 5px;
 }
 button.fastRun {
   color: #197847;
   border-color: #197847;
+}
+#resetButton {
+  color: #888;
+  border-color: #888;
+}
+#resetButton:hover {
+  background: #eee;
+  color: #444;
+  border-color: #444;
 }
 button.fastRun:hover {
   background: #dce7dc;
