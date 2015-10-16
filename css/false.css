@@ -38,6 +38,19 @@ button:hover {
   border-color: #444;
   cursor: pointer;
 }
+button.fastRun {
+}
+button.slowRun {
+}
+button.character {
+  color: #5e86af;
+  border-color: #5e86af;
+}
+button.character:hover {
+  background-color: #d7e0ea;
+  color: #2f6aa5;
+  border-color: #2f6aa5;
+}
 
 #programPanes {
   position: absolute;
