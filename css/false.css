@@ -41,13 +41,20 @@ button:hover {
 button.fastRun {
 }
 button.slowRun {
+  color: #9e6a3b;
+  border-color: #9e6a3b;
+}
+button.slowRun:hover {
+  background: #e7ded4;
+  color: #89532d;
+  border-color: #89532d;
 }
 button.character {
   color: #5e86af;
   border-color: #5e86af;
 }
 button.character:hover {
-  background-color: #d7e0ea;
+  background: #d7e0ea;
   color: #2f6aa5;
   border-color: #2f6aa5;
 }
