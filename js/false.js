@@ -55,11 +55,11 @@ False.lexical = {
       lookup = False.lookup = {},
       operator = lexical.operator,
       delimiter = lexical.delimiter;
-  function fill(s, name) {
+  var fill = function(s, name) {
     s.split('').forEach(function (ch) {
       lookup[ch] = name;
     });
-  }
+  };
   fill('+-*/_', operator.arithmetic);
   fill('=>', operator.comparison);
   fill('&|~', operator.logical);
@@ -70,17 +70,17 @@ False.lexical = {
   fill('[', delimiter.lambda.open);
   fill(']', delimiter.lambda.close);
   fill('!', operator.lambda);
-  function range(firstChar, lastChar, name) {
+  var range = function (firstChar, lastChar, name) {
     var last = lastChar.charCodeAt(0);
     for (var i = firstChar.charCodeAt(0); i <= last; ++i) {
       lookup[String.fromCharCode(i)] = name;
     }
-  }
+  };
   range('a', 'z', lexical.variable.name);
 
   // Map token descriptors to token category hierarchy.
   var categoryOf = False.categoryOf = {};
-  function descend(group, levels) {
+  var descend = function (group, levels) {
     Object.keys(group).forEach(function (key) {
       var item = group[key];
       levels.push(key);
@@ -91,7 +91,7 @@ False.lexical = {
       }
       levels.pop();
     });
-  }
+  };
   descend(lexical, []);
 
   // Decide which tokens will be retained for parsing.
@@ -389,333 +389,336 @@ False.isError = function (result) {
   return typeof(result) === 'object' && result.error !== undefined;
 };
 
-False.execute = function (abstractSyntaxTree) {
-  var lexical = False.lexical,
-      operator = lexical.operator,
-      children = abstractSyntaxTree.children;
-  for (var i = 0; i < children.length; ++i) {
-    if (++False.step.counter > False.option.step.limit) {
-      console.log('exceeded ' + False.option.step.limit + ' steps');
-      return False.makeError('exceeded ' + False.option.step.limit + ' steps');
-    }
-    var astNode = children[i];
-    // Categories: program, lambda, value, variable, operator.
-    // program will never appear as a child node
-    var category = astNode.category;
-    // lambda: wrap the AST sub-tree in a stack item
-    if (category === 'lambda') {
-      False.push(False.makeLambdaItem(astNode));
-      continue;
-    }
-    var token = astNode.token,
-        descriptor = token.descriptor;
-    // value: append strings to output, push other values onto the stack
-    if (category === 'value') {
-      if (descriptor === lexical.value.string) {
-        False.io.write(astNode.string);
-        continue;
-      }
-      if (descriptor === lexical.value.integer) {
-        False.push(False.makeIntegerItem(parseInt(astNode.string, 10)));
-        continue;
-      }
-      if (descriptor === lexical.value.character) {
-        False.push(False.makeCharacterItem(astNode.string));
-        continue;
-      }
-    }
-    // variable: wrap the variable name in a stack item
-    if (category === 'variable') {
-      False.push(False.makeVariableItem(astNode.string));
-      continue;
-    }
-    // If no other category matched, we must be dealing with an operator.
-    // Pop the required items off thestack and perform the operation.
-    var symbol = astNode.string;
-    // Arithmetic operators: _ + - *  /
-    if (descriptor === operator.arithmetic) {
-      var b = False.toInteger(False.peek());
-      if (False.isError(b)) {
-        return b;
-      }
-      if (symbol == '_') {
-        False.pop();
-        False.push(False.makeIntegerItem(-b));
-        continue;
-      }
-      var a = False.toInteger(False.peek(1));
-      if (False.isError(a)) {
-        return a;
-      }
-      if (symbol == '/') {
-        if (b === 0) {
-          return False.makeError('division by zero');
-        }
-        False.pop();
-        False.pop();
-        var ratio = a / b,
-            result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
-        False.push(False.makeIntegerItem(result));
-        continue;
-      }
-      False.pop();
-      False.pop();
-      if (symbol == '+') {
-        False.push(False.makeIntegerItem(a + b));
-        continue;
-      }
-      if (symbol == '-') {
-        False.push(False.makeIntegerItem(a - b));
-        continue;
-      }
-      if (symbol == '*') {
-        False.push(False.makeIntegerItem(a * b));
-        continue;
-      }
-    }
-    // Comparison operators: = >
-    if (descriptor === operator.comparison) {
-      var b = False.toInteger(False.peek());
-      if (False.isError(b)) {
-        return b;
-      }
-      var a = False.toInteger(False.peek(1));
-      if (False.isError(a)) {
-        return a;
-      }
-      var result = (symbol == '=' ? (a === b) : (a > b));
-      False.pop();
-      False.pop();
-      False.push(False.makeBooleanItem(result));
-      continue;
-    }
-    // Logical operators: ~ & |
-    if (descriptor === operator.logical) {
-      var b = False.toBoolean(False.peek());
-      if (False.isError(b)) {
-        return b;
-      }
-      if (symbol == '~') {
-        False.pop();
-        False.push(False.makeBooleanItem(!b));
-        continue;
-      }
-      var a = False.toBoolean(False.peek(1));
-      if (False.isError(a)) {
-        return a;
-      }
-      False.pop();
-      False.pop();
-      if (symbol == '&') {
-        False.push(False.makeBooleanItem(a && b));
-        continue;
-      }
-      if (symbol == '|') {
-        False.push(False.makeBooleanItem(a || b));
-        continue;
-      }
-    }
-    // Variable operators: ; :
-    if (descriptor === operator.variable) {
-      var item = False.peek();
-      if (False.isError(item)) {
-        return item;
-      }
-      if (item.type != 'variable') {
-        return False.makeError('expected a variable');
-      }
-      var name = item.value;
-      if (symbol == ';') {  // Retrieve from variable.
-        var item = False.retrieve(name);
-        if (False.isError(item)) {
-          return item;
-        }
-        False.pop();
-        False.push(item);
-        continue;
-      }
-      if (symbol == ':') {  // Store to variable.
-        var item = False.peek(1);
-        if (False.isError(item)) {
-          return item;
-        }
-        var outcome = False.store(name, item);
-        if (False.isError(outcome)) {
-          return outcome;
-        }
-        False.pop();
-        False.pop();
-        continue;
-      }
-    }
-    // Stack operators: $ % \ @ ø
-    if (descriptor === operator.stack) {
-      if (symbol == '$') {  // duplicate
-        var item = False.peek();
-        if (False.isError(item)) {
-          return item;
-        }
-        False.push(False.copyItem(item));
-        continue;
-      }
-      if (symbol == '%') {  // drop
-        var outcome = False.pop();
-        if (False.isError(outcome)) {
-          return outcome;
-        }
-        continue;
-      }
-      if (symbol == '\\') {  // swap
-        var b = False.peek();
-        if (False.isError(b)) {
-          return b;
-        }
-        var a = False.peek(1);
-        if (False.isError(a)) {
-          return a;
-        }
-        False.pop();
-        False.pop();
-        False.push(b);
-        False.push(a);
-        continue;
-      }
-      if (symbol == '@') {  // rotate
-        var c = False.peek();
-        if (False.isError(c)) {
-          return c;
-        }
-        var b = False.peek(1);
-        if (False.isError(b)) {
-          return b;
-        }
-        var b = False.peek(2);
-        if (False.isError(a)) {
-          return a;
-        }
-        False.pop();
-        False.pop();
-        False.pop();
-        False.push(b);
-        False.push(c);
-        False.push(a);
-        continue;
-      }
-      if (symbol == 'ø') {  // pick: copy nth item (zero-based)
-        var n = False.toInteger(False.peek());
-        if (False.isError(n)) {
-          return n;
-        }
-        var item = False.peek(n + 1);
-        if (False.isError(item)) {
-          return item;
-        }
-        False.pop();
-        False.push(False.copyItem(item));
-        continue;
-      }
-    }
-    // Lambda evaluation operator: !
-    if (descriptor === operator.lambda) {
-      var item = False.peek();
-      if (False.isError(item)) {
-        return item;
-      }
-      if (item.type != 'lambda') {
-        return False.makeError('expected a lambda function');
-      }
-      False.pop();
-      var outcome = False.execute(item.value);
+False.executeStep = function () {
+  if (++False.step.counter > False.option.step.limit) {
+    console.log('exceeded ' + False.option.step.limit + ' steps');
+    return False.makeError('exceeded ' + False.option.step.limit + ' steps');
+  }
+  var callStack = False.callStack;
+  if (callStack.length == 0) {
+    return False.makeError('empty call stack');
+  }
+  var call = callStack[callStack.length - 1];
+  call.step += 1;
+  if (call.step == call.length) {
+    if (call.isWhileCondition) {
+      var outcome = False.toBoolean(False.peek());
       if (False.isError(outcome)) {
         return outcome;
       }
-      continue;
+      False.pop();
+      if (outcome) {
+        console.log('resetting while condition; calling body (true outcome)');
+        call.step = -1;
+        False.startCall(call.whileBody);
+      } else {
+        console.log('ending while call (false outcome)');
+        False.endCall();
+      }
+    } else {
+      console.log('ending ordinary call');
+      False.endCall();
     }
-    // Control operators: ? #
-    if (descriptor === operator.control) {
-      if (symbol == '?') {  // if: boolean lambda
-        var lambda = False.toLambda(False.peek());
-        if (False.isError(lambda)) {
-          return lambda;
-        }
-        var condition = False.toBoolean(False.peek(1));
-        if (False.isError(condition)) {
-          return condition;
-        }
-        False.pop();
-        False.pop();
-        console.log('condition: ' + condition);
-        if (condition) {
-          var outcome = False.execute(lambda);
-          if (False.isError(outcome)) {
-            return outcome;
-          }
-        }
-        continue;
-      }
-      if (symbol == '#') {  // while: lambda lambda
-        var bodyLambda = False.toLambda(False.peek());
-        if (False.isError(bodyLambda)) {
-          return bodyLambda;
-        }
-        var conditionLambda = False.toLambda(False.peek(1));
-        if (False.isError(conditionLambda)) {
-          return conditionLambda;
-        }
-        False.pop();
-        False.pop();
-        while (true) {
-          var outcome = False.execute(conditionLambda);
-          if (False.isError(outcome)) {
-            return outcome;
-          }
-          outcome = False.toBoolean(False.peek());
-          if (False.isError(outcome)) {
-            return outcome;
-          }
-          False.pop();
-          if (!outcome) {
-            break;
-          }
-          outcome = False.execute(bodyLambda);
-          if (False.isError(outcome)) {
-            return outcome;
-          }
-        }
-        continue;
-      }
+    return;
+  }
+  var astNode = call.ast.children[call.step],
+      lexical = False.lexical,
+      operator = lexical.operator;
+  // Categories: program, lambda, value, variable, operator.
+  // program will never appear as a child node
+  var category = astNode.category;
+  // lambda: wrap the AST sub-tree in a stack item
+  if (category === 'lambda') {
+    False.push(False.makeLambdaItem(astNode));
+    return;
+  }
+  var token = astNode.token,
+      descriptor = token.descriptor;
+  // value: append strings to output, push other values onto the stack
+  if (category === 'value') {
+    if (descriptor === lexical.value.string) {
+      False.io.write(astNode.string);
+      return;
     }
-    // Input/output operators: . , ^ ß
-    if (descriptor === operator.io) {
-      if (symbol == '.') {  // print integer
-        var a = False.toInteger(False.peek());
-        if (False.isError(a)) {
-          return a;
-        }
-        False.pop();
-        False.io.write('' + a);
-        continue;
+    if (descriptor === lexical.value.integer) {
+      False.push(False.makeIntegerItem(parseInt(astNode.string, 10)));
+      return;
+    }
+    if (descriptor === lexical.value.character) {
+      False.push(False.makeCharacterItem(astNode.string));
+      return;
+    }
+  }
+  // variable: wrap the variable name in a stack item
+  if (category === 'variable') {
+    False.push(False.makeVariableItem(astNode.string));
+    return;
+  }
+  // If no other category matched, we must be dealing with an operator.
+  // Pop the required items off the stack and perform the operation.
+  var symbol = astNode.string;
+  // Arithmetic operators: _ + - *  /
+  if (descriptor === operator.arithmetic) {
+    var b = False.toInteger(False.peek());
+    if (False.isError(b)) {
+      return b;
+    }
+    if (symbol == '_') {
+      False.pop();
+      False.push(False.makeIntegerItem(-b));
+      return;
+    }
+    var a = False.toInteger(False.peek(1));
+    if (False.isError(a)) {
+      return a;
+    }
+    if (symbol == '/') {
+      if (b === 0) {
+        return False.makeError('division by zero');
       }
-      if (symbol == ',') {  // print integer
-        var c = False.toCharacter(False.peek());
-        if (False.isError(c)) {
-          return c;
-        }
-        False.pop();
-        False.io.write(c);
-        continue;
+      False.pop();
+      False.pop();
+      var ratio = a / b,
+          result = (ratio < 0 ? Math.ceil : Math.floor)(ratio);
+      False.push(False.makeIntegerItem(result));
+      return;
+    }
+    False.pop();
+    False.pop();
+    if (symbol == '+') {
+      False.push(False.makeIntegerItem(a + b));
+      return;
+    }
+    if (symbol == '-') {
+      False.push(False.makeIntegerItem(a - b));
+      return;
+    }
+    if (symbol == '*') {
+      False.push(False.makeIntegerItem(a * b));
+      return;
+    }
+  }
+  // Comparison operators: = >
+  if (descriptor === operator.comparison) {
+    var b = False.toInteger(False.peek());
+    if (False.isError(b)) {
+      return b;
+    }
+    var a = False.toInteger(False.peek(1));
+    if (False.isError(a)) {
+      return a;
+    }
+    var result = (symbol == '=' ? (a === b) : (a > b));
+    False.pop();
+    False.pop();
+    False.push(False.makeBooleanItem(result));
+    return;
+  }
+  // Logical operators: ~ & |
+  if (descriptor === operator.logical) {
+    var b = False.toBoolean(False.peek());
+    if (False.isError(b)) {
+      return b;
+    }
+    if (symbol == '~') {
+      False.pop();
+      False.push(False.makeBooleanItem(!b));
+      return;
+    }
+    var a = False.toBoolean(False.peek(1));
+    if (False.isError(a)) {
+      return a;
+    }
+    False.pop();
+    False.pop();
+    if (symbol == '&') {
+      False.push(False.makeBooleanItem(a && b));
+      return;
+    }
+    if (symbol == '|') {
+      False.push(False.makeBooleanItem(a || b));
+      return;
+    }
+  }
+  // Variable operators: ; :
+  if (descriptor === operator.variable) {
+    var item = False.peek();
+    if (False.isError(item)) {
+      return item;
+    }
+    if (item.type != 'variable') {
+      return False.makeError('expected a variable');
+    }
+    var name = item.value;
+    if (symbol == ';') {  // Retrieve from variable.
+      var item = False.retrieve(name);
+      if (False.isError(item)) {
+        return item;
       }
-      if (symbol == '^') {
-        continue;
+      False.pop();
+      False.push(item);
+      return;
+    }
+    if (symbol == ':') {  // Store to variable.
+      var item = False.peek(1);
+      if (False.isError(item)) {
+        return item;
       }
-      if (symbol == 'ß') {
-        var output = False.io.clearOutput(),
-            input = False.io.clearInput();
-        False.io.consoleWriteOutput('<span class="outputText">' + output +
-            '</span');
-        False.io.consoleWriteInput(input);
-        continue;
+      var outcome = False.store(name, item);
+      if (False.isError(outcome)) {
+        return outcome;
       }
+      False.pop();
+      False.pop();
+      return;
+    }
+  }
+  // Stack operators: $ % \ @ ø
+  if (descriptor === operator.stack) {
+    if (symbol == '$') {  // duplicate
+      var item = False.peek();
+      if (False.isError(item)) {
+        return item;
+      }
+      False.push(False.copyItem(item));
+      return;
+    }
+    if (symbol == '%') {  // drop
+      var outcome = False.pop();
+      if (False.isError(outcome)) {
+        return outcome;
+      }
+      return;
+    }
+    if (symbol == '\\') {  // swap
+      var b = False.peek();
+      if (False.isError(b)) {
+        return b;
+      }
+      var a = False.peek(1);
+      if (False.isError(a)) {
+        return a;
+      }
+      False.pop();
+      False.pop();
+      False.push(b);
+      False.push(a);
+      return;
+    }
+    if (symbol == '@') {  // rotate
+      var c = False.peek();
+      if (False.isError(c)) {
+        return c;
+      }
+      var b = False.peek(1);
+      if (False.isError(b)) {
+        return b;
+      }
+      var b = False.peek(2);
+      if (False.isError(a)) {
+        return a;
+      }
+      False.pop();
+      False.pop();
+      False.pop();
+      False.push(b);
+      False.push(c);
+      False.push(a);
+      return;
+    }
+    if (symbol == 'ø') {  // pick: copy nth item (zero-based)
+      var n = False.toInteger(False.peek());
+      if (False.isError(n)) {
+        return n;
+      }
+      var item = False.peek(n + 1);
+      if (False.isError(item)) {
+        return item;
+      }
+      False.pop();
+      False.push(False.copyItem(item));
+      return;
+    }
+  }
+  // Lambda evaluation operator: !
+  if (descriptor === operator.lambda) {
+    var item = False.peek();
+    if (False.isError(item)) {
+      return item;
+    }
+    if (item.type != 'lambda') {
+      return False.makeError('expected a lambda function');
+    }
+    False.pop();
+    console.log('starting call (lambda evaluation)');
+    False.startCall(item.value);
+    return;
+  }
+  // Control operators: ? #
+  if (descriptor === operator.control) {
+    if (symbol == '?') {  // if: boolean lambda
+      var lambda = False.toLambda(False.peek());
+      if (False.isError(lambda)) {
+        return lambda;
+      }
+      var condition = False.toBoolean(False.peek(1));
+      if (False.isError(condition)) {
+        return condition;
+      }
+      False.pop();
+      False.pop();
+      if (condition) {
+        console.log('starting call (if consequence)');
+        False.startCall(lambda);
+      }
+      return;
+    }
+    if (symbol == '#') {  // while: lambda lambda
+      var bodyLambda = False.toLambda(False.peek());
+      if (False.isError(bodyLambda)) {
+        return bodyLambda;
+      }
+      var conditionLambda = False.toLambda(False.peek(1));
+      if (False.isError(conditionLambda)) {
+        return conditionLambda;
+      }
+      False.pop();
+      False.pop();
+      console.log('starting call (while condition)');
+      False.startCall(conditionLambda, bodyLambda);
+      return;
+    }
+  }
+  // Input/output operators: . , ^ ß
+  if (descriptor === operator.io) {
+    if (symbol == '.') {  // print integer
+      var a = False.toInteger(False.peek());
+      if (False.isError(a)) {
+        return a;
+      }
+      False.pop();
+      False.io.write('' + a);
+      return;
+    }
+    if (symbol == ',') {  // print integer
+      var c = False.toCharacter(False.peek());
+      if (False.isError(c)) {
+        return c;
+      }
+      False.pop();
+      False.io.write(c);
+      return;
+    }
+    if (symbol == '^') {
+      return;
+    }
+    if (symbol == 'ß') {
+      var output = False.io.clearOutput(),
+          input = False.io.clearInput();
+      False.io.consoleWriteOutput('<span class="outputText">' + output +
+          '</span');
+      False.io.consoleWriteInput(input);
+      return;
     }
   }
 };
@@ -850,7 +853,28 @@ False.message = function (s, classExtra) {
   False.display.messages.appendChild(display);
 };
 
+False.clearCallStack = function () {
+  False.callStack = [];
+};
+False.startCall = function (abstractSyntaxTree, whileBody) {
+  var call = {
+    ast: abstractSyntaxTree,
+    length: abstractSyntaxTree.children.length,
+    step: -1,
+    isWhileCondition: false
+  };
+  if (whileBody !== undefined) {
+    call.isWhileCondition = true;
+    call.whileBody = whileBody;
+  }
+  False.callStack.push(call);
+};
+False.endCall = function () {
+  False.callStack.pop();
+};
+
 False.run = function () {
+  False.clearCallStack();
   False.clearStack();
   False.clearVariables();
   False.clearIO();
@@ -873,10 +897,6 @@ False.run = function () {
     return;
   }
 
-  function displayToken(token) {
-    console.log(JSON.stringify(token), '>' + sourceCode.substring(token.begin, token.end) + '<');
-  }
-  
   // Parse: tokens -> parse tree
   console.log('parsing');
   var tokens = scanResult.tokens,
@@ -894,17 +914,20 @@ False.run = function () {
     return;
   }
 
-  // Execute: parse tree -> outcome
+  // Execute: parse tree -> effects
   //False.displayParseTree(parseResult.tree);
   console.log('executing');
-  False.message('running');
+  False.message('fast run');
   False.step.counter = 0;
-  var outcome = False.execute(parseResult.tree);
-  if (False.isError(outcome)) {
-    False.errorMessage(outcome.error);
-    return;
+  False.startCall(parseResult.tree);
+  var programCall = False.callStack[0];
+  while (programCall.step < programCall.length) {
+    var outcome = False.executeStep();
+    if (False.isError(outcome)) {
+      False.errorMessage(outcome.error);
+      return;
+    }
   }
-
   False.message('done');
 };
 

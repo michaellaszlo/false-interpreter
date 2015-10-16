@@ -38,7 +38,7 @@ button:hover {
   border-color: #444;
   cursor: pointer;
 }
-#slowRunButtons, #characterButtons {
+#visualRunButtons, #characterButtons {
   display: inline;
   margin-left: 10px;
 }
@@ -51,11 +51,11 @@ button.fastRun:hover {
   color: #0a6a33;
   border-color: #0a6a33;
 }
-button.slowRun {
+button.visualRun {
   color: #9e6a3b;
   border-color: #9e6a3b;
 }
-button.slowRun:hover {
+button.visualRun:hover {
   background: #e7ded4;
   color: #89532d;
   border-color: #89532d;
