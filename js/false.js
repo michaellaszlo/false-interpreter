@@ -873,13 +873,30 @@ False.endCall = function () {
   False.callStack.pop();
 };
 
-False.run = function () {
+False.singleStep = function () {
+  if (False.callStack.length == 0) {
+    False.reset();
+    if (False.parseResult.errors.length != 0) {
+      return;
+    }
+  }
+  var outcome = False.executeStep();
+  if (False.isError(outcome)) {
+    False.errorMessage(outcome.error);
+  }
+};
+
+False.reset = function () {
   False.clearCallStack();
   False.clearStack();
   False.clearVariables();
   False.clearIO();
   False.clearMessages();
+  False.step.counter = 0;
+  False.makeParseTree();
+};
 
+False.makeParseTree = function () {
   // Scan: characters -> tokens
   console.log('scanning');
   var sourceCode = False.sourceCode = False.sourceInput.value,
@@ -913,13 +930,21 @@ False.run = function () {
     });
     return;
   }
+  False.parseResult = parseResult;
+};
+
+False.run = function () {
+  False.reset();
 
   // Execute: parse tree -> effects
-  //False.displayParseTree(parseResult.tree);
+  if (!False.parseResult || False.parseResult.errors.length != 0) {
+    return;
+  }
+  var syntaxTree = False.parseResult.tree;
+  //False.displayParseTree(syntaxTree);
   console.log('executing');
   False.message('fast run');
-  False.step.counter = 0;
-  False.startCall(parseResult.tree);
+  False.startCall(syntaxTree);
   var programCall = False.callStack[0];
   while (programCall.step < programCall.length) {
     var outcome = False.executeStep();
@@ -1005,5 +1030,6 @@ window.onload = function () {
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = '3 a:\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. " hello\n" ] # ß';
   document.getElementById('runButton').onclick = False.run;
+  document.getElementById('stepButton').onclick = False.singleStep;
   False.run();
 };
