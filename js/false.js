@@ -879,6 +879,7 @@ False.singleStep = function () {
     if (False.parseResult.errors.length != 0) {
       return;
     }
+    False.startCall(False.parseResult.tree);
   }
   var outcome = False.executeStep();
   if (False.isError(outcome)) {
