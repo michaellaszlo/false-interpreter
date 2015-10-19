@@ -408,15 +408,12 @@ False.executeStep = function () {
       }
       False.pop();
       if (outcome) {
-        console.log('resetting while condition; calling body (true outcome)');
         call.step = -1;
         False.startCall(call.whileBody);
       } else {
-        console.log('ending while call (false outcome)');
         False.endCall();
       }
     } else {
-      console.log('ending ordinary call');
       False.endCall();
     }
     return;
@@ -614,7 +611,7 @@ False.executeStep = function () {
       if (False.isError(b)) {
         return b;
       }
-      var b = False.peek(2);
+      var a = False.peek(2);
       if (False.isError(a)) {
         return a;
       }
@@ -650,7 +647,6 @@ False.executeStep = function () {
       return False.makeError('expected a lambda function');
     }
     False.pop();
-    console.log('starting call (lambda evaluation)');
     False.startCall(item.value);
     return;
   }
@@ -668,7 +664,6 @@ False.executeStep = function () {
       False.pop();
       False.pop();
       if (condition) {
-        console.log('starting call (if consequence)');
         False.startCall(lambda);
       }
       return;
@@ -684,7 +679,6 @@ False.executeStep = function () {
       }
       False.pop();
       False.pop();
-      console.log('starting call (while condition)');
       False.startCall(conditionLambda, bodyLambda);
       return;
     }
@@ -744,8 +738,8 @@ False.push = function (item) {
   var type = item.type,
       display = document.createElement('div');
   display.className = 'item';
-  display.innerHTML = '<span class="type">' + type + '</span>' +
-      '<span class="value">' + False.toString(item) + '</span>';
+  display.innerHTML = '<div class="type">' + type + '</div>' +
+      '<div class="value">' + False.toString(item) + '</div>';
   item.display = display;
   False.display.stack.appendChild(display);
 };
@@ -1030,7 +1024,11 @@ window.onload = function () {
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = '3 a:\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. " hello\n" ] # ß';
+  sourceInput.value = "'a 'b 'c @";
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('stepButton').onclick = False.singleStep;
   False.run();
+  for (var i = 0; i < 5; ++i) {
+    False.singleStep();
+  }
 };

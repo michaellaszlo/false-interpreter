@@ -94,9 +94,9 @@ button.character:hover {
   height: 100%;
 }
 
-#consoleAndVariables, #stack, #source {
+#consoleAndVariables, #stack, #callStack, #source {
   float: left;
-  width: 33.3333333%;
+  width: 33.3333%;
   height: 100%;
 }
 #inputBuffer {
@@ -114,7 +114,7 @@ button.character:hover {
 #variables {
   height: 40%;
 }
-#variables, #output, #stack, #sourceInput, .display {
+#variables, #output, #stack, #callStack, #sourceInput, .display {
   font-family: monospace;
   overflow-y: scroll;
   font-size: 20px;
@@ -169,10 +169,10 @@ button.character:hover {
 }
 
 #stack {
-  border: 5px solid #8fcfb5;
+  border: 5px solid #d9e1bf;
   background: #eee;
 }
-#stack .item {
+#stack .item, #callStack .item {
   background: #fff;
   padding: 5px 10px;
   border-bottom: 1px solid #ccc;
@@ -182,10 +182,17 @@ button.character:hover {
   font-family: sans-serif;
   font-size: 16px;
   color: #aaa;
+  display: inline-block;
+  width: 30%;
 }
 #stack .item .value {
-  position: absolute;
-  right: 15px;
+  display: inline-block;
+  width: 70%;
+}
+
+#callStack {
+  border: 5px solid #8fcfb5;
+  background: #eee;
 }
 
 #source {
