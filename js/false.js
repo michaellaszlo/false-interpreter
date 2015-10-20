@@ -1023,8 +1023,7 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = '3 a:\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. " hello\n" ] # ß';
-  sourceInput.value = "'a 'b 'c @";
+  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. " hello\n" ]\n@a:\n# ß';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('stepButton').onclick = False.singleStep;
   False.run();
