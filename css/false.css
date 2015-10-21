@@ -197,16 +197,8 @@ button.character:hover {
 #callStack .item {
   white-space: pre-wrap;
 }
-#callStack .code {
-  border: 1px solid #ddd;
-  border-radius: 3px;
-}
-#callStack .space {
-  background: #eee;
-  padding: 1px 0 3px;
-}
 #callStack .delimiter {
-  color: #aaa;
+  color: #bbb;
 }
 
 #source {
