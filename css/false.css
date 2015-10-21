@@ -203,7 +203,10 @@ button.character:hover {
 }
 #callStack .space {
   background: #eee;
-  border-radius: 3px;
+  padding: 1px 0 3px;
+}
+#callStack .delimiter {
+  color: #aaa;
 }
 
 #source {

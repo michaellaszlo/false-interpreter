@@ -879,6 +879,22 @@ False.startCall = function (syntaxTree, whileBody) {
       tokens = False.scanResult.tokens,
       previousEnd = -1;
   item.className = 'item';
+
+  var makeSpan = function (className, begin, end) {
+    var span = document.createElement('span');
+    span.className = className;
+    span.innerHTML = False.sourceCode.substring(begin, end);
+    return span;
+  };
+
+  if (syntaxTree.category == 'lambda') {
+    var openDelimiter = tokens[syntaxTree.beginToken],
+        begin = openDelimiter.outer.begin,
+        end = openDelimiter.outer.end;
+    item.appendChild(makeSpan('delimiter space', begin, end));
+    previousEnd = end;
+  }
+
   for (var i = 0; i < children.length; ++i) {
     var child = children[i];
     if (child.category == 'lambda') {
@@ -889,22 +905,22 @@ False.startCall = function (syntaxTree, whileBody) {
           end = child.token.outer.end;
     }
     if (previousEnd != -1 && begin != previousEnd) {
-      var space = False.sourceCode.substring(previousEnd, begin);
-      var spaceSpan = document.createElement('span');
-      if (space != '\n') {
-        spaceSpan.className = 'space';
-      }
-      spaceSpan.innerHTML = space;
-      console.log('space >' + spaceSpan.innerHTML + '<');
-      item.appendChild(spaceSpan);
+      item.appendChild(makeSpan('space', previousEnd, begin));
     }
     previousEnd = end;
-    var codeSpan = document.createElement('span');
-    codeSpan.className = 'code';
-    codeSpan.innerHTML = False.sourceCode.substring(begin, end);
-    console.log('code  >' + codeSpan.innerHTML + '<');
-    item.appendChild(codeSpan);
+    item.appendChild(makeSpan('code', begin, end));
   }
+
+  if (syntaxTree.category == 'lambda') {
+    var closeDelimiter = tokens[syntaxTree.endToken - 1],
+        begin = closeDelimiter.outer.begin,
+        end = closeDelimiter.outer.end;
+    if (begin != previousEnd) {
+      item.appendChild(makeSpan('space', previousEnd, begin));
+    }
+    item.appendChild(makeSpan('delimiter space', begin, end));
+  }
+
   False.display.callStack.appendChild(item);
   call.item = item;
 };
@@ -996,6 +1012,12 @@ False.run = function () {
   False.message('done');
 };
 
+False.visualRun = function () {
+  if (!False.reset()) {
+    return;
+  }
+};
+
 window.onload = function () {
   False.display = {};
   False.display.variables = document.getElementById('variables');
@@ -1073,6 +1095,7 @@ window.onload = function () {
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
+  document.getElementById('visualRunButton').onclick = False.visualRun;
   False.singleStep();
   for (var i = 0; i < 17; ++i) {
     False.singleStep();
