@@ -858,6 +858,7 @@ False.message = function (s, classExtra) {
 
 False.clearCallStack = function () {
   False.callStack = [];
+  False.removeChildren(False.display.callStack);
 };
 False.startCall = function (syntaxTree, whileBody) {
   // Make an object for the logical call stack.
@@ -905,9 +906,11 @@ False.startCall = function (syntaxTree, whileBody) {
     item.appendChild(codeSpan);
   }
   False.display.callStack.appendChild(item);
+  call.item = item;
 };
 False.endCall = function () {
-  False.callStack.pop();
+  var call = False.callStack.pop();
+  False.display.callStack.removeChild(call.item);
 };
 
 False.singleStep = function () {
