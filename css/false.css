@@ -195,7 +195,7 @@ button.character:hover {
   background: #eee;
 }
 #callStack .item {
-  white-space: pre;
+  white-space: pre-wrap;
 }
 #callStack .code {
   border: 1px solid #ddd;

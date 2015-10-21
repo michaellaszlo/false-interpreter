@@ -101,8 +101,16 @@ False.lexical = {
   });
 })();
 
-False.makeToken = function (descriptor, begin, end) {
-  return { descriptor: descriptor, begin: begin, end: end };
+False.makeToken = function (descriptor, outBegin, outEnd, inBegin, inEnd) {
+  if (inBegin === undefined) {
+    inBegin = outBegin;
+    inEnd = outEnd;
+  }
+  return {
+    descriptor: descriptor,
+    outer: { begin: outBegin, end: outEnd },
+    inner: { begin: inBegin, end: inEnd }
+  };
 };
 
 False.makeScanError = function (token, message) {
@@ -146,7 +154,8 @@ False.scan = function (s) {
     // Single quote followed by any character: character value.
     if (ch == "'") {
       if (pos < s.length) {
-        tokens.push(makeToken(lexical.value.character, pos, pos + 1));
+        tokens.push(makeToken(lexical.value.character, pos - 1, pos + 1,
+            pos, pos + 1));
         ++pos;
         continue;
       } else {
@@ -177,8 +186,8 @@ False.scan = function (s) {
         }
         // Check for the end of the string.
         if (ch == '"') {
-          // Discard the delimiters when we make the token.
-          tokens.push(makeToken(lexical.value.string, pos, seek - 1));
+          tokens.push(makeToken(lexical.value.string, pos - 1, seek,
+              pos, seek - 1));
           pos = seek;
           break;
         }
@@ -263,15 +272,14 @@ False.doParse = function (errors, tokens, startLambda) {
     if (parseToken[category]) {
       var node = {
         category: category,
-        token: tokens[pos],
-        string: False.sourceCode.substring(tokens[pos].begin, tokens[pos].end)
+        token: tokens[pos]
       };
       children.push(node);
     }
     ++pos;
   }
-  tree.string = False.sourceCode.substring(
-      tokens[tree.beginToken].begin, tokens[tree.endToken - 1].end);
+  tree.begin = tokens[tree.beginToken].outer.begin;
+  tree.end = tokens[tree.endToken - 1].outer.end;
   return tree;
 };
 
@@ -294,22 +302,22 @@ False.displayParseTree = function (tree, tabs) {
     } else {
       var token = child.token;
       console.log(indent + child.category + ', ' + token.descriptor + ', ' +
-          'character ' + token.begin + ' to character ' + token.end);
+          'character ' + token.outer.begin +' to character '+ token.outer.end);
     }
   });
   tabs.pop();
 };
 
 False.highlight = function(token) {
-  sourceInput.selectionStart = token.begin;
-  sourceInput.selectionEnd = token.end;
+  sourceInput.selectionStart = token.outer.begin;
+  sourceInput.selectionEnd = token.outer.end;
 };
 
 False.copyItem = function (item) {
   return { type: item.type, value: item.value };
 };
-False.makeLambdaItem = function (astNode) {
-  return { type: 'lambda', value: astNode };
+False.makeLambdaItem = function (node) {
+  return { type: 'lambda', value: node };
 };
 False.makeIntegerItem = function (x) {
   return { type: 'integer', value: x };
@@ -418,42 +426,43 @@ False.executeStep = function () {
     }
     return;
   }
-  var astNode = call.ast.children[call.step],
+  var node = call.ast.children[call.step],
       lexical = False.lexical,
       operator = lexical.operator;
   // Categories: program, lambda, value, variable, operator.
   // program will never appear as a child node
-  var category = astNode.category;
+  var category = node.category;
   // lambda: wrap the AST sub-tree in a stack item
   if (category === 'lambda') {
-    False.push(False.makeLambdaItem(astNode));
+    False.push(False.makeLambdaItem(node));
     return;
   }
-  var token = astNode.token,
-      descriptor = token.descriptor;
+  var token = node.token,
+      descriptor = token.descriptor,
+      content = False.sourceCode.substring(token.inner.begin, token.inner.end);
   // value: append strings to output, push other values onto the stack
   if (category === 'value') {
     if (descriptor === lexical.value.string) {
-      False.io.write(astNode.string);
+      False.io.write(content);
       return;
     }
     if (descriptor === lexical.value.integer) {
-      False.push(False.makeIntegerItem(parseInt(astNode.string, 10)));
+      False.push(False.makeIntegerItem(parseInt(content, 10)));
       return;
     }
     if (descriptor === lexical.value.character) {
-      False.push(False.makeCharacterItem(astNode.string));
+      False.push(False.makeCharacterItem(content));
       return;
     }
   }
   // variable: wrap the variable name in a stack item
   if (category === 'variable') {
-    False.push(False.makeVariableItem(astNode.string));
+    False.push(False.makeVariableItem(content));
     return;
   }
   // If no other category matched, we must be dealing with an operator.
   // Pop the required items off the stack and perform the operation.
-  var symbol = astNode.string;
+  var symbol = content;
   // Arithmetic operators: _ + - *  /
   if (descriptor === operator.arithmetic) {
     var b = False.toInteger(False.peek());
@@ -726,7 +735,7 @@ False.removeChildren = function (display) {
 
 False.toString = function (item) {
   if (item.type === 'lambda') {
-    return item.value.string;
+    return False.sourceCode.substring(item.value.begin, item.value.end);
   }
   return item.value;
 };
@@ -872,11 +881,11 @@ False.startCall = function (syntaxTree, whileBody) {
   for (var i = 0; i < children.length; ++i) {
     var child = children[i];
     if (child.category == 'lambda') {
-      var begin = tokens[child.beginToken].begin,
-          end = tokens[child.endToken - 1].end;
+      var begin = child.begin,
+          end = child.end;
     } else {
-      var begin = child.token.begin,
-          end = child.token.end;
+      var begin = child.token.outer.begin,
+          end = child.token.outer.end;
     }
     if (previousEnd != -1 && begin != previousEnd) {
       var space = False.sourceCode.substring(previousEnd, begin);
@@ -885,15 +894,14 @@ False.startCall = function (syntaxTree, whileBody) {
         spaceSpan.className = 'space';
       }
       spaceSpan.innerHTML = space;
-      console.log('"' + spaceSpan.innerHTML + '"');
+      console.log('space >' + spaceSpan.innerHTML + '<');
       item.appendChild(spaceSpan);
     }
     previousEnd = end;
-    //console.log(begin, end, child.string);
     var codeSpan = document.createElement('span');
     codeSpan.className = 'code';
-    codeSpan.innerHTML = child.string;
-    console.log(codeSpan.innerHTML);
+    codeSpan.innerHTML = False.sourceCode.substring(begin, end);
+    console.log('code  >' + codeSpan.innerHTML + '<');
     item.appendChild(codeSpan);
   }
   False.display.callStack.appendChild(item);
@@ -937,11 +945,11 @@ False.makeParseTree = function () {
   if (scanResult.errors.length != 0) {
     scanResult.errors.forEach(function (error) {
       var token = error.token,
-          text = sourceCode.substring(token.begin, token.end);
+          text = sourceCode.substring(token.outer.begin, token.outer.end);
       if (text.length > 20) {
         text = text.substring(0, 20) + '...';
       }
-      False.errorMessage('[char ' + token.begin + '] ' + error.message +
+      False.errorMessage('[char ' + token.outer.begin + '] ' + error.message +
           ': ' + text);
     });
     return;
@@ -954,11 +962,11 @@ False.makeParseTree = function () {
   if (parseResult.errors.length != 0) {
     parseResult.errors.forEach(function (error) {
       var token = tokens[error.pos],
-          text = sourceCode.substring(token.begin, token.end);
+          text = sourceCode.substring(token.outer.begin, token.outer.end);
       if (text.length > 20) {
         text = text.substring(0, 20) + '...';
       }
-      False.errorMessage('[char ' + token.begin + '] ' + error.message +
+      False.errorMessage('[char ' + token.outer.begin + '] ' + error.message +
           ': ' + text);
     });
     return;
@@ -1058,7 +1066,7 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. " hello\n" ]\n@a:\n# ß';
+  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ a;1+. \' ,\'h ,"ello\n" ]\n@a:\n# ß';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
