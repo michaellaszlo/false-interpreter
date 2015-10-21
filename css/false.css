@@ -200,6 +200,13 @@ button.character:hover {
 #callStack .delimiter {
   color: #bbb;
 }
+#callStack .executing {
+  background-color: #c1e7c3;
+  color: #e7651f;
+  padding-bottom: 1px;
+  border-bottom: 2px solid #6ec766;
+  border-radius: 2px;
+}
 
 #source {
   border: 5px solid #91afcf;

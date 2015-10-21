@@ -4,7 +4,11 @@ False.option = {
   type: { coercion: true },
   stack: { scrollDown: true },
   step: { limit: 1000 },
-  visual: { hertz: 2 }
+};
+
+False.visual = {
+  hertz: 2,
+  active: false
 };
 
 False.step = {
@@ -408,6 +412,9 @@ False.executeStep = function () {
     return False.makeError('empty call stack');
   }
   var call = callStack[callStack.length - 1];
+  if (call.step != -1) {
+    M.classRemove(call.spans[call.step], 'executing');
+  }
   call.step += 1;
   if (call.step == call.length) {
     if (call.isWhileCondition) {
@@ -427,6 +434,7 @@ False.executeStep = function () {
     }
     return;
   }
+  M.classAdd(call.spans[call.step], 'executing');
   var node = call.ast.children[call.step],
       lexical = False.lexical,
       operator = lexical.operator;
@@ -896,6 +904,7 @@ False.startCall = function (syntaxTree, whileBody) {
     previousEnd = end;
   }
 
+  call.spans = new Array(children.length);
   for (var i = 0; i < children.length; ++i) {
     var child = children[i];
     if (child.category == 'lambda') {
@@ -909,7 +918,9 @@ False.startCall = function (syntaxTree, whileBody) {
       item.appendChild(makeSpan('space', previousEnd, begin));
     }
     previousEnd = end;
-    item.appendChild(makeSpan('code', begin, end));
+    var span = makeSpan('code', begin, end);
+    call.spans[i] = span;
+    item.appendChild(span);
   }
 
   if (syntaxTree.category == 'lambda') {
@@ -1017,7 +1028,8 @@ False.visualRun = function () {
   var syntaxTree = False.parseResult.tree;
   False.message('visual run');
   var programCall = False.callStack[0],
-      delay = 1000 / False.option.visual.hertz;
+      delay = 1000 / False.visual.hertz;
+  False.visual.active = true;
   var visualStep = function () {
     var outcome = False.executeStep();
     if (False.isError(outcome)) {
@@ -1110,8 +1122,6 @@ window.onload = function () {
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
-  False.visualRun();
-  return;
   False.singleStep();
   for (var i = 0; i < 17; ++i) {
     False.singleStep();
