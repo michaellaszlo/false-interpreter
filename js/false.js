@@ -850,10 +850,11 @@ False.message = function (s, classExtra) {
 False.clearCallStack = function () {
   False.callStack = [];
 };
-False.startCall = function (abstractSyntaxTree, whileBody) {
+False.startCall = function (syntaxTree, whileBody) {
+  // Make an object for the logical call stack.
   var call = {
-    ast: abstractSyntaxTree,
-    length: abstractSyntaxTree.children.length,
+    ast: syntaxTree,
+    length: syntaxTree.children.length,
     step: -1,
     isWhileCondition: false
   };
@@ -862,6 +863,40 @@ False.startCall = function (abstractSyntaxTree, whileBody) {
     call.whileBody = whileBody;
   }
   False.callStack.push(call);
+  // Make a physical representation of the call.
+  var item = document.createElement('div'),
+      children = syntaxTree.children,
+      tokens = False.scanResult.tokens,
+      previousEnd = -1;
+  item.className = 'item';
+  for (var i = 0; i < children.length; ++i) {
+    var child = children[i];
+    if (child.category == 'lambda') {
+      var begin = tokens[child.beginToken].begin,
+          end = tokens[child.endToken - 1].end;
+    } else {
+      var begin = child.token.begin,
+          end = child.token.end;
+    }
+    if (previousEnd != -1 && begin != previousEnd) {
+      var space = False.sourceCode.substring(previousEnd, begin);
+      var spaceSpan = document.createElement('span');
+      if (space != '\n') {
+        spaceSpan.className = 'space';
+      }
+      spaceSpan.innerHTML = space;
+      console.log('"' + spaceSpan.innerHTML + '"');
+      item.appendChild(spaceSpan);
+    }
+    previousEnd = end;
+    //console.log(begin, end, child.string);
+    var codeSpan = document.createElement('span');
+    codeSpan.className = 'code';
+    codeSpan.innerHTML = child.string;
+    console.log(codeSpan.innerHTML);
+    item.appendChild(codeSpan);
+  }
+  False.display.callStack.appendChild(item);
 };
 False.endCall = function () {
   False.callStack.pop();
@@ -898,7 +933,7 @@ False.makeParseTree = function () {
   // Scan: characters -> tokens
   console.log('scanning');
   var sourceCode = False.sourceCode = False.sourceInput.value,
-      scanResult = False.scan(sourceCode);
+      scanResult = False.scanResult = False.scan(sourceCode);
   if (scanResult.errors.length != 0) {
     scanResult.errors.forEach(function (error) {
       var token = error.token,
@@ -915,7 +950,7 @@ False.makeParseTree = function () {
   // Parse: tokens -> parse tree
   console.log('parsing');
   var tokens = scanResult.tokens,
-      parseResult = False.parse(tokens);
+      parseResult = False.parseResult = False.parse(tokens);
   if (parseResult.errors.length != 0) {
     parseResult.errors.forEach(function (error) {
       var token = tokens[error.pos],
@@ -928,7 +963,6 @@ False.makeParseTree = function () {
     });
     return;
   }
-  False.parseResult = parseResult;
 };
 
 False.run = function () {
@@ -986,6 +1020,7 @@ window.onload = function () {
 
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');
+  False.display.callStack = document.getElementById('callStack');
 
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
   var makeInsertHandler = function (insertText) {
@@ -1027,9 +1062,8 @@ window.onload = function () {
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
-  return;
-  False.run();
-  for (var i = 0; i < 5; ++i) {
+  False.singleStep();
+  for (var i = 0; i < 17; ++i) {
     False.singleStep();
   }
 };

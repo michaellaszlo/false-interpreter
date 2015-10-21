@@ -194,6 +194,17 @@ button.character:hover {
   border: 5px solid #8fcfb5;
   background: #eee;
 }
+#callStack .item {
+  white-space: pre;
+}
+#callStack .code {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+#callStack .space {
+  background: #eee;
+  border-radius: 3px;
+}
 
 #source {
   border: 5px solid #91afcf;
