@@ -1117,13 +1117,13 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h ,"ello\n" ]\n@a:\n# ß';
+  sourceInput.value = '5\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h ,"ello\n" ]\n@a:\n# ß';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   False.singleStep();
-  for (var i = 0; i < 17; ++i) {
+  for (var i = 0; i < 14; ++i) {
     False.singleStep();
   }
 };

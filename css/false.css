@@ -190,6 +190,9 @@ button.character:hover {
   width: 70%;
 }
 
+#callStack, #sourceInput {
+  letter-spacing: 1px;
+}
 #callStack {
   border: 5px solid #8fcfb5;
   background: #eee;
@@ -200,12 +203,22 @@ button.character:hover {
 #callStack .delimiter {
   color: #bbb;
 }
+#callStack .code {
+  position: relative;
+}
 #callStack .executing {
-  background-color: #c1e7c3;
-  color: #e7651f;
-  padding-bottom: 1px;
-  border-bottom: 2px solid #6ec766;
-  border-radius: 2px;
+  background: #d7eec5;
+  color: #09589e;
+  padding: 0 0 2px 1px;
+  border: 2px solid #d2e9c1;
+  /*
+  background: #eecfa5;
+  color: #02497f;
+  border-color: #e4c79e;
+  */
+  margin: 0 -2px 0 -3px;
+  border-radius: 4px;
+  position: static;
 }
 
 #source {
