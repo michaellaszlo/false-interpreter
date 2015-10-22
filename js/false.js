@@ -435,6 +435,9 @@ False.executeStep = function () {
     } else {
       False.finishCall();
     }
+    if (callStack.length != 0) {
+      False.executeStep();
+    }
     return;
   }
   M.classAdd(call.spans[call.step], 'executing');
