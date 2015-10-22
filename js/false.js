@@ -7,7 +7,7 @@ False.option = {
 };
 
 False.visual = {
-  hertz: 2,
+  hertz: 3,
   active: false
 };
 
@@ -411,7 +411,7 @@ False.executeStep = function () {
   if (callStack.length == 0) {
     return False.makeError('empty call stack');
   }
-  var call = callStack[callStack.length - 1];
+  var call = callStack[False.callIndex];
   if (call.step != -1) {
     M.classRemove(call.spans[call.step], 'executing');
   }
@@ -425,17 +425,20 @@ False.executeStep = function () {
       False.pop();
       if (outcome) {
         call.step = -1;
-        False.startCall(call.whileBody);
+        False.callIndex += 1;
+        call.bodyCall.step = -1;
       } else {
-        False.endCall();
+        False.finishCall();
       }
+    } else if (call.isWhileBody) {
+      False.callIndex -= 1;
     } else {
-      False.endCall();
+      False.finishCall();
     }
     return;
   }
   M.classAdd(call.spans[call.step], 'executing');
-  var node = call.ast.children[call.step],
+  var node = call.tree.children[call.step],
       lexical = False.lexical,
       operator = lexical.operator;
   // Categories: program, lambda, value, variable, operator.
@@ -872,19 +875,24 @@ False.clearCallStack = function () {
 False.startCall = function (syntaxTree, whileBody) {
   // Make an object for the logical call stack.
   var call = {
-    ast: syntaxTree,
+    tree: syntaxTree,
     length: syntaxTree.children.length,
     step: -1,
     isWhileCondition: false
   };
+  var callIndex = False.callStack.length;
+  False.callStack.push(call);
+  var item = document.createElement('div');
+  False.display.callStack.appendChild(item);
   if (whileBody !== undefined) {
     call.isWhileCondition = true;
-    call.whileBody = whileBody;
+    var bodyCall = call.bodyCall = False.startCall(whileBody);
+    bodyCall.isWhileBody = true;
+    bodyCall.whileCall = call;
   }
-  False.callStack.push(call);
+  False.callIndex = callIndex;
   // Make a physical representation of the call.
-  var item = document.createElement('div'),
-      children = syntaxTree.children,
+  var children = syntaxTree.children,
       tokens = False.scanResult.tokens,
       previousEnd = -1;
   item.className = 'item';
@@ -933,12 +941,16 @@ False.startCall = function (syntaxTree, whileBody) {
     item.appendChild(makeSpan('delimiter space', begin, end));
   }
 
-  False.display.callStack.appendChild(item);
   call.item = item;
+  return call;
 };
-False.endCall = function () {
+False.finishCall = function () {
   var call = False.callStack.pop();
   False.display.callStack.removeChild(call.item);
+  if (call.isWhileBody) {
+    False.finishCall();
+  }
+  False.callIndex = False.callStack.length - 1;
 };
 
 False.singleStep = function () {
@@ -1117,13 +1129,15 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = '5\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h ,"ello\n" ]\n@a:\n# ß';
+  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h ,"ello\n" ]\n@a:\n# ß';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
+  False.visualRun();
+  return;
   False.singleStep();
-  for (var i = 0; i < 14; ++i) {
+  for (var i = 0; i < 6; ++i) {
     False.singleStep();
   }
 };
