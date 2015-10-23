@@ -96,8 +96,11 @@ button.character:hover {
 
 #consoleAndVariables, #stack, #callStack, #source {
   float: left;
-  width: 25%;
+  width: 33.3333%;
   height: 100%;
+}
+.hidden {
+  display: none;
 }
 #inputBuffer {
   height: 20%;

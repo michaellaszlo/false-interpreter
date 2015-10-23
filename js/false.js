@@ -1059,6 +1059,11 @@ False.visualRun = function () {
   False.message('done');
 };
 
+False.resumeEditing = function () {
+  M.classAdd(False.display.callStack, 'hidden');
+  M.classRemove(False.sourceInput, 'hidden');
+};
+
 window.onload = function () {
   False.display = {};
   False.display.variables = document.getElementById('variables');
@@ -1137,8 +1142,9 @@ window.onload = function () {
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
-  False.visualRun();
+  False.resumeEditing();
   return;
+  False.visualRun();
   False.singleStep();
   for (var i = 0; i < 6; ++i) {
     False.singleStep();
