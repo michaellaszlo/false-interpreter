@@ -980,6 +980,7 @@ False.reset = function () {
     return false;
   }
   False.startCall(False.parseResult.tree);
+  False.startRunning();
   return true;
 };
 
@@ -1056,12 +1057,20 @@ False.visualRun = function () {
     }
   };
   visualStep();
+  False.resumeEditing();
   False.message('done');
 };
 
 False.resumeEditing = function () {
   M.classAdd(False.display.callStack, 'hidden');
   M.classRemove(False.sourceInput, 'hidden');
+  False.running = false;
+};
+
+False.startRunning = function () {
+  M.classRemove(False.display.callStack, 'hidden');
+  M.classAdd(False.sourceInput, 'hidden');
+  False.running = true;
 };
 
 window.onload = function () {
