@@ -1024,8 +1024,10 @@ False.makeParseTree = function () {
 };
 
 False.run = function () {
-  if (!False.reset()) {
-    return;
+  if (!False.callStack || False.callStack.length == 0) {
+    if (!False.reset()) {
+      return;
+    }
   }
   if (!False.running) {
     False.startRunning();
@@ -1045,8 +1047,10 @@ False.run = function () {
 };
 
 False.visualRun = function () {
-  if (!False.reset()) {
-    return;
+  if (!False.callStack || False.callStack.length == 0) {
+    if (!False.reset()) {
+      return;
+    }
   }
   if (!False.running) {
     False.startRunning();
