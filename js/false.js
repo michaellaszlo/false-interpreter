@@ -962,6 +962,9 @@ False.singleStep = function () {
       return;
     }
   }
+  if (!False.running) {
+    False.startRunning();
+  }
   var outcome = False.executeStep();
   if (False.isError(outcome)) {
     False.errorMessage(outcome.error);
@@ -980,7 +983,7 @@ False.reset = function () {
     return false;
   }
   False.startCall(False.parseResult.tree);
-  False.startRunning();
+  False.resumeEditing();
   return true;
 };
 
@@ -1024,6 +1027,9 @@ False.run = function () {
   if (!False.reset()) {
     return;
   }
+  if (!False.running) {
+    False.startRunning();
+  }
   var syntaxTree = False.parseResult.tree;
   False.message('run');
   var programCall = False.callStack[0];
@@ -1034,6 +1040,7 @@ False.run = function () {
       return;
     }
   }
+  False.resumeEditing();
   False.message('done');
 };
 
@@ -1041,6 +1048,10 @@ False.visualRun = function () {
   if (!False.reset()) {
     return;
   }
+  if (!False.running) {
+    False.startRunning();
+  }
+  console.log('running?', False.running);
   var syntaxTree = False.parseResult.tree;
   False.message('visual run');
   var programCall = False.callStack[0],
@@ -1055,10 +1066,12 @@ False.visualRun = function () {
     if (programCall.step < programCall.length) {
       False.runTimeout = window.setTimeout(visualStep, delay);
     }
+    else {
+      False.resumeEditing();
+      False.message('done');
+    }
   };
   visualStep();
-  False.resumeEditing();
-  False.message('done');
 };
 
 False.resumeEditing = function () {
