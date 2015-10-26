@@ -115,8 +115,21 @@ button.character:hover {
   border: 5px solid #e7e1c3;
 }
 .display div {
-  border-top: 1px solid #eee;
   padding: 1px 4px;
+  border-top: 1px solid #eaeaea;
+}
+.display div.zebraFirst {
+  background: #fafafa;
+}
+.display div.zebraSecond {
+  background: #fafafa;
+}
+.display div .lineEnd {
+  display: none;
+}
+.display div.current .lineEnd {
+  display: inline;
+  color: #aaa;
 }
 
 #variables {
