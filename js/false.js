@@ -733,8 +733,8 @@ False.executeStep = function () {
     if (symbol == 'ß') {
       var output = False.io.clearOutput(),
           input = False.io.clearInput();
-      False.io.consoleWriteOutput(output);
-      False.io.consoleWriteInput(input);
+      False.io.consoleWrite(output);
+      False.io.consoleWrite(input);
       return;
     }
   }
@@ -827,30 +827,49 @@ False.clearVariables = function () {
 False.clearIO = function () {
   False.buffer = { input: [], output: [] };
   False.console = [];
-  False.display.buffer.input.value = '';
-  False.display.buffer.output.value = '';
-  False.display.console.value = '';
+  False.io.clearDisplay(False.display.buffer.input);
+  False.io.clearDisplay(False.display.buffer.output);
+  False.io.clearDisplay(False.display.console);
 };
-False.io = {}
-False.io.write = function (text) {
+False.io = {};
+// A display is a div of divs. Each inner div contains a single span,
+// the contents of which constitute one line.
+False.io.clearDisplay = function (display) {
+  False.removeChildren(display);
+  False.io.newLine(display);
+};
+False.io.newLine = function (display) {
+  var lineOuter = document.createElement('div'),
+      lineInner = document.createElement('span');
+  lineOuter.appendChild(lineInner);
+  display.appendChild(lineOuter);
+  display.currentLine = lineInner;
+};
+False.io.addText = function (display, text) {
+  var lines = text.split('\n');
+  for (var i = 0; i < lines.length - 1; ++i) {
+    display.currentLine.innerHTML += lines[i];
+    False.io.newLine(display);
+  }
+  display.currentLine.innerHTML += lines[lines.length - 1];
+};
+False.io.write = function (text) {  // Write to the output buffer.
   False.buffer.output.push(text);
-  False.display.buffer.output.value += text;
+  False.io.addText(False.display.buffer.output, text);
 };
 False.io.clearOutput = function () {
   var buffer = False.buffer.output;
   text = buffer.join('');
   buffer.splice(0, buffer.length);
-  False.display.buffer.output.value = '';
+  False.io.clearDisplay(False.display.buffer.output);
   return text;
 };
 False.io.clearInput = function () {
-  return text;
+  return 'unimplemented';
 };
-False.io.consoleWriteOutput = function (text) {
+False.io.consoleWrite = function (text) {
   False.console.push(text);
-  False.display.console.value += text;
-};
-False.io.consoleWriteInput = function () {
+  False.io.addText(False.display.console, text);
 };
 
 False.errorMessage = function (s) {
