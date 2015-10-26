@@ -733,8 +733,7 @@ False.executeStep = function () {
     if (symbol == 'ß') {
       var output = False.io.clearOutput(),
           input = False.io.clearInput();
-      False.io.consoleWriteOutput('<span class="outputText">' + output +
-          '</span');
+      False.io.consoleWriteOutput(output);
       False.io.consoleWriteInput(input);
       return;
     }
@@ -828,30 +827,28 @@ False.clearVariables = function () {
 False.clearIO = function () {
   False.buffer = { input: [], output: [] };
   False.console = [];
-  False.display.buffer.input.span.innerHTML = '';
-  False.display.buffer.output.span.innerHTML = '';
-  False.display.console.span.innerHTML = '';
+  False.display.buffer.input.value = '';
+  False.display.buffer.output.value = '';
+  False.display.console.value = '';
 };
 False.io = {}
 False.io.write = function (text) {
-  text = text.replace(/\n/, '<br>');
   False.buffer.output.push(text);
-  False.display.buffer.output.span.innerHTML += text;
+  False.display.buffer.output.value += text;
 };
 False.io.clearOutput = function () {
   var buffer = False.buffer.output;
   text = buffer.join('');
   buffer.splice(0, buffer.length);
-  False.display.buffer.output.span.innerHTML = '';
+  False.display.buffer.output.value = '';
   return text;
 };
 False.io.clearInput = function () {
   return text;
 };
 False.io.consoleWriteOutput = function (text) {
-  text = text.replace(/\n/, '<br>');
   False.console.push(text);
-  False.display.console.span.innerHTML += text;
+  False.display.console.value += text;
 };
 False.io.consoleWriteInput = function () {
 };
@@ -1112,16 +1109,12 @@ window.onload = function () {
   }
 
   False.display.buffer = {};
-  False.display.buffer.input = {
-    span: document.getElementById('inputBufferDisplaySpan')
-  };
-  False.display.buffer.input.span.contentEditable = true;
-  False.display.buffer.output = {
-    span: document.getElementById('outputBufferDisplaySpan')
-  };
-  False.display.console = {
-    span: document.getElementById('consoleSpan')
-  };
+  False.display.buffer.input = document.getElementById('inputBufferDisplay');
+  False.display.buffer.input.contentEditable = false;
+  False.display.buffer.output = document.getElementById('outputBufferDisplay');
+  False.display.buffer.output.contentEditable = false;
+  False.display.console = document.getElementById('consoleDisplay');
+  False.display.console.contentEditable = false;
 
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');
