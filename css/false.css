@@ -114,6 +114,11 @@ button.character:hover {
   height: 20%;
   border: 5px solid #e7e1c3;
 }
+.display div {
+  border-top: 1px solid #eee;
+  padding: 1px 4px;
+}
+
 #variables {
   height: 40%;
 }
@@ -228,8 +233,10 @@ button.character:hover {
   border: 5px solid #91afcf;
   background: #eee;
 }
-#sourceInput, .display {
+#sourceInput {
   padding: 10px 15px;
+}
+#sourceInput, .display {
   width: 100%;
   height: 100%;
   display: block;
@@ -237,13 +244,4 @@ button.character:hover {
   outline: none;
   resize: none;
   border: 0;
-}
-#inputBufferDisplaySpan, #outputBufferDisplaySpan {
-  outline: none;
-}
-#inputBufferDisplaySpan, .inputText {
-  background: #ded2e7;
-}
-#outputBufferDisplaySpan, .outputText {
-  background: #cddee7;
 }

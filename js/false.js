@@ -841,6 +841,11 @@ False.io.clearDisplay = function (display) {
 False.io.newLine = function (display) {
   var lineOuter = document.createElement('div'),
       lineInner = document.createElement('span');
+  if (display.children.length % 2 == 0) {
+    lineOuter.className = 'zebraFirst';
+  } else {
+    lineOuter.className = 'zebraSecond';
+  }
   lineOuter.appendChild(lineInner);
   display.appendChild(lineOuter);
   display.currentLine = lineInner;
@@ -865,7 +870,7 @@ False.io.clearOutput = function () {
   return text;
 };
 False.io.clearInput = function () {
-  return 'unimplemented';
+  return '';
 };
 False.io.consoleWrite = function (text) {
   False.console.push(text);
@@ -1181,6 +1186,7 @@ window.onload = function () {
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   False.resumeEditing();
+  False.run();
   return;
   False.visualRun();
   False.singleStep();
