@@ -847,7 +847,7 @@ False.io.newLine = function (display) {
       lineEnd = document.createElement('span');
   M.classAdd(lineOuter, 'current');
   M.classAdd(lineEnd, 'lineEnd');
-  lineEnd.innerHTML = '&#x2038;';
+  lineEnd.innerHTML = '&nbsp;';//'&#x25ae;'; //'&#x2038;';
   if (display.children.length % 2 == 0) {
     M.classAdd(lineOuter, 'zebraFirst');
   } else {
@@ -1017,7 +1017,6 @@ False.reset = function () {
 
 False.makeParseTree = function () {
   // Scan: characters -> tokens
-  console.log('scanning');
   var sourceCode = False.sourceCode = False.sourceInput.value,
       scanResult = False.scanResult = False.scan(sourceCode);
   if (scanResult.errors.length != 0) {
@@ -1034,7 +1033,6 @@ False.makeParseTree = function () {
   }
 
   // Parse: tokens -> parse tree
-  console.log('parsing');
   var tokens = scanResult.tokens,
       parseResult = False.parseResult = False.parse(tokens);
   if (parseResult.errors.length != 0) {
