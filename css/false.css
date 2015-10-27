@@ -116,7 +116,7 @@ button.character:hover {
 }
 .display div {
   padding: 1px 4px;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px dotted #eaeaea;
 }
 .display div.zebraFirst {
   background: #fafafa;

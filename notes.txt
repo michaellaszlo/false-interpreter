@@ -75,20 +75,32 @@ We can introduce a boolean type while supporting previously written programs.
 --------
 I/O model
 
-Three displays: output, input, console.
-- output operations print to the output buffer
-- input operations read from the input buffer
-- a button allows the user to insert an EOF character into the input buffer
+Two modes: file mode and interactive mode
+- file mode: separate panes for input and output
+- interactive mode: input goes into the same pane as output
+- for now we'll only implement file mode
+
+The input pane has three parts
+- scanned input: not editable; can be flushed to output
+- unscanned input: editable field
+- input terminator: either a prompt or EOF
+
+The meaning of the prompt
+- if the unscanned input is empty, the program waits for the user
+- in live mode, the program reads a character as soon as it is available
+- in break mode, the user edits the field and then presses a resume button
+
+The meaning of EOF
+- a button allows the user to toggle the terminator between prompt and EOF
+- EOF means that the stream has ended and there is no going back
+- the editable field for unscanned input vanishes when EOF is read
+- any further attempts to read a character will result in EOF
+- to the program, the value of EOF is -1
 
 What does the flush operation do?
-- first it prints the contents of the output buffer to the console
-- then it prints the scanned portion of the input buffer to the console
-- the unread portion of the input buffer remains in the input buffer
+- it removes the scanned input from the input pane and appends it to output
 
-Newline characters ('\n') are replaced with line breaks (<br>).
-- no other substitutions are made.
-- the editor allows no invisible characters except space and newline
-- one writes a newline by typing a real newline, not an escaped code
-- attempts to write '\t', '\n', and so on will result in literal text
-- it is not possible to make an EOF character in source code
+Newline characters ('\n') result in new lines being made
+- no other whitespace is treated specially
+- one makes a newline by entering a real newline, not encoding it as '\n'
 
