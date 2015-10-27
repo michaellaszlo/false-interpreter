@@ -96,27 +96,23 @@ button.character:hover {
 
 #consoleAndVariables, #stack, #callStack, #source {
   float: left;
-  width: 33.3333%;
+  width: 33.333333%;
   height: 100%;
 }
 .hidden {
   display: none;
 }
-#inputBuffer {
-  height: 20%;
+#input {
+  height: 30%;
   border: 5px solid #ded2e7;
 }
-#outputBuffer {
-  height: 20%;
+#output {
+  height: 30%;
   border: 5px solid #cddee7;
-}
-#console {
-  height: 20%;
-  border: 5px solid #e7e1c3;
 }
 .display div {
   padding: 1px 4px;
-  border-top: 1px dotted #eaeaea;
+  border-top: 1px dotted #d8d8d8;
 }
 .display div.zebraFirst {
   background: #fafafa;

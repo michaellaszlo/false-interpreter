@@ -731,10 +731,8 @@ False.executeStep = function () {
       return;
     }
     if (symbol == 'ß') {
-      var output = False.io.clearOutput(),
-          input = False.io.clearInput();
-      False.io.consoleWrite(output);
-      False.io.consoleWrite(input);
+      var input = False.io.clearInput();
+      False.io.write(input);
       return;
     }
   }
@@ -825,11 +823,10 @@ False.clearVariables = function () {
 };
 
 False.clearIO = function () {
-  False.buffer = { input: [], output: [] };
+  False.stream = { input: [], output: [] };
   False.console = [];
-  False.io.clearDisplay(False.display.buffer.input);
-  False.io.clearDisplay(False.display.buffer.output);
-  False.io.clearDisplay(False.display.console);
+  False.io.clearDisplay(False.display.input);
+  False.io.clearDisplay(False.display.output);
 };
 False.io = {};
 // A display is a div of divs. Each inner div contains a single span,
@@ -865,15 +862,15 @@ False.io.addText = function (display, text) {
   }
   display.currentInner.innerHTML += lines[lines.length - 1];
 };
-False.io.write = function (text) {  // Write to the output buffer.
-  False.buffer.output.push(text);
-  False.io.addText(False.display.buffer.output, text);
+False.io.write = function (text) {  // Write to the output stream.
+  False.stream.output.push(text);
+  False.io.addText(False.display.output, text);
 };
 False.io.clearOutput = function () {
-  var buffer = False.buffer.output;
-  text = buffer.join('');
-  buffer.splice(0, buffer.length);
-  False.io.clearDisplay(False.display.buffer.output);
+  var stream = False.stream.output;
+  text = stream.join('');
+  stream.splice(0, stream.length);
+  False.io.clearDisplay(False.display.output);
   return text;
 };
 False.io.clearInput = function () {
@@ -1137,13 +1134,8 @@ window.onload = function () {
     False.variables[ch] = { display: variable, span: { value: valueSpan } };
   }
 
-  False.display.buffer = {};
-  False.display.buffer.input = document.getElementById('inputBufferDisplay');
-  False.display.buffer.input.contentEditable = false;
-  False.display.buffer.output = document.getElementById('outputBufferDisplay');
-  False.display.buffer.output.contentEditable = false;
-  False.display.console = document.getElementById('consoleDisplay');
-  False.display.console.contentEditable = false;
+  False.display.input = document.getElementById('inputDisplay');
+  False.display.output = document.getElementById('outputDisplay');
 
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');
