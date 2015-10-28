@@ -825,13 +825,13 @@ False.clearVariables = function () {
 False.clearIO = function () {
   False.stream = { input: [], output: [] };
   False.console = [];
-  False.io.clearDisplay(False.display.input);
-  False.io.clearDisplay(False.display.output);
+  False.io.clearOutputDisplay();
 };
 False.io = {};
 // A display is a div of divs. Each inner div contains a single span,
 // the contents of which constitute one line.
-False.io.clearDisplay = function (display) {
+False.io.clearOutputDisplay = function () {
+  var display = False.display.output;
   False.removeChildren(display);
   False.io.newLine(display);
 };
@@ -844,7 +844,7 @@ False.io.newLine = function (display) {
       lineEnd = document.createElement('span');
   M.classAdd(lineOuter, 'current');
   M.classAdd(lineEnd, 'lineEnd');
-  lineEnd.innerHTML = '&nbsp;';//'&#x25ae;'; //'&#x2038;';
+  lineEnd.innerHTML = '&nbsp;';
   if (display.children.length % 2 == 0) {
     M.classAdd(lineOuter, 'zebraFirst');
   } else {
@@ -870,7 +870,7 @@ False.io.clearOutput = function () {
   var stream = False.stream.output;
   text = stream.join('');
   stream.splice(0, stream.length);
-  False.io.clearDisplay(False.display.output);
+  False.io.clearOutputDisplay();
   return text;
 };
 False.io.clearInput = function () {
@@ -1078,7 +1078,6 @@ False.visualRun = function () {
   if (!False.running) {
     False.startRunning();
   }
-  console.log('running?', False.running);
   var syntaxTree = False.parseResult.tree;
   False.message('visual run');
   var programCall = False.callStack[0],
@@ -1134,7 +1133,13 @@ window.onload = function () {
     False.variables[ch] = { display: variable, span: { value: valueSpan } };
   }
 
-  False.display.input = document.getElementById('inputDisplay');
+  False.display.input = {
+    container: document.getElementById('inputDisplay'),
+    scanned: document.getElementById('scanned'),
+    unscanned: document.getElementById('unscanned')
+  };
+  False.display.input.unscanned.contentEditable = true;
+  False.display.input.unscanned.spellcheck = false;
   False.display.output = document.getElementById('outputDisplay');
 
   False.display.messages = document.getElementById('messages');
@@ -1142,6 +1147,7 @@ window.onload = function () {
   False.display.callStack = document.getElementById('callStack');
 
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
+  False.sourceInput.spellcheck = false;
   var makeInsertHandler = function (insertText) {
     return function () {
       var text = sourceInput.value,
