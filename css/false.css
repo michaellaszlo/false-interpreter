@@ -130,15 +130,12 @@ button.character:hover {
 
 #scanned {
   cursor: default;
-  padding: 2px 5px;
   color: #888;
 }
 #unscanned {
-  padding: 2px 8px 2px 7px;
-  border-left: 4px solid #888;
-  border-right: 4px solid #888;
+  margin: 0 5px;
 }
-#unscannedInput:focus {
+#unscanned:focus {
   outline: none;
 }
 #terminus {

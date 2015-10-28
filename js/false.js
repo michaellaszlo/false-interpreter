@@ -1136,13 +1136,12 @@ window.onload = function () {
   False.display.input = {
     container: document.getElementById('inputDisplay'),
     scanned: document.getElementById('scanned'),
-    unscanned: document.getElementById('unscanned'),
-    unscannedInput: document.getElementById('unscannedInput')
+    unscanned: document.getElementById('unscanned')
   };
-  False.display.input.unscanned.onclick = function () {
-    False.display.input.unscannedInput.focus();
+  False.display.input.container.onclick = function () {
+    False.display.input.unscanned.focus();
   };
-  False.display.input.unscannedInput.contentEditable = true;
+  False.display.input.unscanned.contentEditable = true;
   False.display.input.unscanned.spellcheck = false;
   False.display.output = document.getElementById('outputDisplay');
 
