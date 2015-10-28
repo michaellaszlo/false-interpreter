@@ -113,13 +113,12 @@ button.character:hover {
 }
 .display div {
   padding: 1px 4px;
-  border-top: 1px dotted #d8d8d8;
 }
 .display div.zebraFirst {
-  background: #fafafa;
+  background: #fff;
 }
 .display div.zebraSecond {
-  background: #fafafa;
+  background: #fff;
 }
 .display div .lineEnd {
   display: none;
