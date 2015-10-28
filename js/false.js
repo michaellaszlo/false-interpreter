@@ -1136,9 +1136,13 @@ window.onload = function () {
   False.display.input = {
     container: document.getElementById('inputDisplay'),
     scanned: document.getElementById('scanned'),
-    unscanned: document.getElementById('unscanned')
+    unscanned: document.getElementById('unscanned'),
+    unscannedInput: document.getElementById('unscannedInput')
   };
-  False.display.input.unscanned.contentEditable = true;
+  False.display.input.unscanned.onclick = function () {
+    False.display.input.unscannedInput.focus();
+  };
+  False.display.input.unscannedInput.contentEditable = true;
   False.display.input.unscanned.spellcheck = false;
   False.display.output = document.getElementById('outputDisplay');
 

@@ -105,6 +105,7 @@ button.character:hover {
 #input {
   height: 30%;
   border: 5px solid #ded2e7;
+  padding: 1px 4px;
 }
 #output {
   height: 30%;
@@ -132,20 +133,17 @@ button.character:hover {
   cursor: default;
   padding: 2px 5px;
   color: #888;
-  border-bottom: 2px solid #ddd;
 }
 #unscanned {
-  padding: 2px 10px 2px 8px;
-  border-bottom: 2px dotted #888;
+  padding: 2px 8px 2px 7px;
+  border-left: 4px solid #888;
+  border-right: 4px solid #888;
 }
-#unscanned:focus {
-  background: #f2f8ca;
-  background: #d4e1f4;
+#unscannedInput:focus {
   outline: none;
 }
 #terminus {
   cursor: pointer;
-  margin-left: 5px;
 }
 #terminus .prompt {
   background: #444;
