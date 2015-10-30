@@ -105,14 +105,13 @@ button.character:hover {
 #input {
   height: 30%;
   border: 5px solid #ded2e7;
-  padding: 1px 4px;
 }
 #output {
   height: 30%;
   border: 5px solid #cddee7;
 }
-.display div {
-  padding: 1px 4px;
+.display {
+  padding: 10px 15px;
 }
 .display div.zebraFirst {
   background: #fff;
@@ -129,16 +128,11 @@ button.character:hover {
 }
 
 #scanned {
-  cursor: default;
-  color: #888;
 }
 #unscanned {
-  margin: 0 5px;
-}
-#unscanned:focus {
-  outline: none;
 }
 #terminus {
+  border: 1px solid #666;
   cursor: pointer;
 }
 #terminus .prompt {
@@ -162,14 +156,12 @@ button.character:hover {
   padding: 2px 3px;
   border-radius: 3px;
   margin-left: 5px;
-  position: relative;
-  bottom: 2px;
 }
 
 #variables {
   height: 40%;
 }
-#variables, #stack, #callStack, #sourceInput, .display {
+#variables, #stack, #callStack, #unscanned, #sourceInput, .display {
   font-family: monospace;
   overflow-y: scroll;
   font-size: 20px;
@@ -280,10 +272,10 @@ button.character:hover {
   border: 5px solid #91afcf;
   background: #eee;
 }
-#sourceInput {
-  padding: 10px 15px;
+#unscanned, #sourceInput {
+  padding: 5px 10px;
 }
-#sourceInput, .display {
+#unscanned, #sourceInput, .display {
   width: 100%;
   height: 100%;
   display: block;

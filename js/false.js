@@ -1134,15 +1134,19 @@ window.onload = function () {
   }
 
   False.display.input = {
-    container: document.getElementById('inputDisplay'),
-    scanned: document.getElementById('scanned'),
-    unscanned: document.getElementById('unscanned')
+    container: document.getElementById('input'),
+    scanned: document.createElement('div'),
+    unscanned: document.createElement('textarea')
   };
-  False.display.input.container.onclick = function () {
-    False.display.input.unscanned.focus();
-  };
-  False.display.input.unscanned.contentEditable = true;
-  False.display.input.unscanned.spellcheck = false;
+  var container = False.display.input.container,
+      scanned = False.display.input.scanned,
+      unscanned = False.display.input.unscanned;
+  scanned.id = 'scanned';
+  container.appendChild(scanned);
+  unscanned.id = 'unscanned';
+  unscanned.spellcheck = false;
+  container.appendChild(unscanned);
+
   False.display.output = document.getElementById('outputDisplay');
 
   False.display.messages = document.getElementById('messages');
@@ -1192,7 +1196,8 @@ window.onload = function () {
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   False.resumeEditing();
-  for (var i = 0; i < 27; ++i) {
+  return;
+  for (var i = 0; i < 23; ++i) {
     False.singleStep();
   }
 };
