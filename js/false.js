@@ -7,7 +7,7 @@ False.option = {
 };
 
 False.visual = {
-  hertz: 3,
+  hertz: 10,
   active: false
 };
 
@@ -1144,6 +1144,7 @@ window.onload = function () {
   scanned.id = 'scanned';
   container.appendChild(scanned);
   unscanned.id = 'unscanned';
+  unscanned.className = 'display';
   unscanned.spellcheck = false;
   container.appendChild(unscanned);
 
