@@ -247,6 +247,10 @@ False.doParse = function (errors, tokens, startLambda) {
       children = tree.children = [],
       makeParseError = False.makeParseError,
       delimiter = lexical.delimiter.lambda;
+  if (tokens.length == 0) {
+    errors.push(makeParseError(null, 'no tokens'));
+    return tree;
+  }
   while (true) {
     if (pos == tokens.length) {  // We've run out of tokens.
       tree.endToken = pos;
@@ -1043,6 +1047,10 @@ False.makeParseTree = function () {
       parseResult = False.parseResult = False.parse(tokens);
   if (parseResult.errors.length != 0) {
     parseResult.errors.forEach(function (error) {
+      if (error.pos === null) {
+        False.errorMessage(error.message);
+        return;
+      }
       var token = tokens[error.pos],
           text = sourceCode.substring(token.outer.begin, token.outer.end);
       if (text.length > 20) {
