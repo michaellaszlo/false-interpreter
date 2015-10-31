@@ -401,6 +401,12 @@ False.makeError = function (message) {
 False.isError = function (result) {
   return typeof(result) === 'object' && result.error !== undefined;
 };
+False.makeInterrupt = function (handler) {
+  return { interrupter: handler };
+};
+False.isInterrupt = function (result) {
+  return typeof(result) === 'object' && result.interrupter !== undefined;
+};
 
 False.executeStep = function () {
   if (++False.step.counter > False.option.step.limit) {
@@ -994,6 +1000,9 @@ False.singleStep = function () {
   if (False.isError(outcome)) {
     False.errorMessage(outcome.error);
   }
+  if (False.isInterrupt(outcome)) {
+    outcome.interrupter(function () {});
+  }
 };
 
 False.reset = function () {
@@ -1058,15 +1067,27 @@ False.run = function () {
   var syntaxTree = False.parseResult.tree;
   False.message('run');
   var programCall = False.callStack[0];
-  while (programCall.step < programCall.length) {
+  var step = function () {
+    if (programCall.step >= programCall.length) {
+      False.resumeEditing();
+      False.message('done');
+      return;
+    }
     var outcome = False.executeStep();
     if (False.isError(outcome)) {
       False.errorMessage(outcome.error);
       return;
     }
+    if (False.isInterrupt(outcome)) {
+      console.log('interrupt');
+      outcome.interrupter(function () {
+        console.log('resume');
+        step();
+      });
+    }
+    step();
   }
-  False.resumeEditing();
-  False.message('done');
+  step();
 };
 
 False.visualRun = function () {
@@ -1084,18 +1105,24 @@ False.visualRun = function () {
       delay = 1000 / False.visual.hertz;
   False.visual.active = true;
   var visualStep = function () {
+    if (programCall.step >= programCall.length) {
+      False.resumeEditing();
+      False.message('done');
+      return;
+    }
     var outcome = False.executeStep();
     if (False.isError(outcome)) {
       False.errorMessage(outcome.error);
       return;
     }
-    if (programCall.step < programCall.length) {
-      False.runTimeout = window.setTimeout(visualStep, delay);
+    if (False.isInterrupt(outcome)) {
+      console.log('interrupt');
+      outcome.interrupter(function () {
+        console.log('resume');
+        step();
+      });
     }
-    else {
-      False.resumeEditing();
-      False.message('done');
-    }
+    False.runTimeout = window.setTimeout(visualStep, delay);
   };
   visualStep();
 };

@@ -209,6 +209,9 @@ button.character:hover {
   width: 70%;
 }
 
+#stack, #callStack {
+  padding: 0;
+}
 #callStack, #sourceInput {
   letter-spacing: 1px;
 }
@@ -216,7 +219,6 @@ button.character:hover {
   display: none;
 }
 #callStack {
-  padding: 0;
   border: 5px solid #8fcfb5;
   background: #eee;
 }
