@@ -405,11 +405,11 @@ False.makeError = function (message) {
 False.isError = function (result) {
   return typeof(result) === 'object' && result.error !== undefined;
 };
-False.makeInterrupt = function (handler) {
-  return { interrupter: handler };
+False.makeInterrupt = function (interruptHandler) {
+  return { interruptHandler: interruptHandler };
 };
 False.isInterrupt = function (result) {
-  return typeof(result) === 'object' && result.interrupter !== undefined;
+  return typeof(result) === 'object' && result.interruptHandler !== undefined;
 };
 
 False.executeStep = function () {
@@ -738,7 +738,23 @@ False.executeStep = function () {
       return;
     }
     if (symbol == '^') {
-      return;
+      var unscanned = False.display.input.unscanned;
+      var getCharacter = function () {
+        var ch = unscanned.value.charAt(0);
+        False.push(False.makeCharacterItem(ch));
+        unscanned.value = unscanned.value.substring(1);
+        False.display.input.scanned += ch;
+      };
+      if (unscanned.value.length != 0) {
+        getCharacter();
+        return;
+      }
+      return False.makeInterrupt(function (interruptContinuation) {
+        unscanned.oninput = function () {
+          getCharacter();
+          interruptContinuation();
+        };
+      });
     }
     if (symbol == 'ß') {
       var input = False.io.clearInput();
@@ -1005,7 +1021,7 @@ False.singleStep = function () {
     False.errorMessage(outcome.error);
   }
   if (False.isInterrupt(outcome)) {
-    outcome.interrupter(function () {});
+    outcome.interruptHandler(function () {});
   }
 };
 
@@ -1088,7 +1104,7 @@ False.run = function () {
     }
     if (False.isInterrupt(outcome)) {
       console.log('interrupt');
-      outcome.interrupter(function () {
+      outcome.interruptHandler(function () {
         console.log('resume');
         step();
       });
@@ -1125,7 +1141,7 @@ False.visualRun = function () {
     }
     if (False.isInterrupt(outcome)) {
       console.log('interrupt');
-      outcome.interrupter(function () {
+      outcome.interruptHandler(function () {
         console.log('resume');
         step();
       });
@@ -1227,11 +1243,13 @@ window.onload = function () {
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
+  sourceInput.value = ' ^ a: "You entered: " a; ,';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   False.resumeEditing();
+  False.singleStep();
   return;
   for (var i = 0; i < 23; ++i) {
     False.singleStep();
