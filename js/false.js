@@ -751,6 +751,7 @@ False.executeStep = function () {
       }
       return False.makeInterrupt(function (interruptContinuation) {
         unscanned.oninput = function () {
+          unscanned.oninput = undefined;
           getCharacter();
           interruptContinuation();
         };
@@ -1032,6 +1033,7 @@ False.reset = function () {
   False.clearIO();
   False.clearMessages();
   False.step.counter = 0;
+  unscanned.oninput = undefined;
   False.makeParseTree();
   if (False.parseResult.errors.length != 0) {
     return false;
