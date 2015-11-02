@@ -1,5 +1,9 @@
 
 --------
+Language definition:
+
+  http://strlen.com/false/false.txt
+
 Existing visual interpreters:
 
   http://morphett.info/false/false.html
@@ -80,7 +84,7 @@ Two modes: file mode and interactive mode
 - interactive mode: input goes into the same pane as output
 - for now we'll only implement file mode
 
-The input pane has three parts
+The input pane has three segments
 - scanned input: not editable; can be flushed to output
 - unscanned input: editable field
 - input terminator: either a prompt or EOF
@@ -102,5 +106,34 @@ What does the flush operation do?
 
 Newline characters ('\n') result in new lines being made
 - no other whitespace is treated specially
-- one makes a newline by entering a real newline, not encoding it as '\n'
+- one makes a newline by hitting Enter, not typing out the encoding '\n'
+
+
+--------
+application states
+
+Edit mode
+- the editor is shown and the call stack is hidden
+
+Run mode
+- the call stack is shown and the editor is hidden
+- run styles:
+  - visual or non-visual
+  - continuous or single-step
+- run states:
+  - running
+  - halted
+    - halt mode:
+      - runnable (can resume running when the user wishes)
+      - input (can resume running when input is available)
+      - error (cannot resume)
+
+Waiting for input
+- When the unscanned input field is empty, execution halts.
+- If the run style is continuous, execution resumes upon input.
+- If the run style is single-step, execution does not resume on input.
+  - If we did resume, the new character would instantly vanish.
+  - The user must manually resume execution.
+  - Thus, if the input is empty, pressing "Step" has no effect.
+
 
