@@ -15,6 +15,15 @@ False.step = {
   counter: -1
 };
 
+False.state = {
+  current: 'edit',  // or 'run'
+  run: {
+    visual: true,
+    singleStep: false
+  },
+  halt: 'running'  // or 'input' or 'error'
+};
+
 False.lexical = {
   value: {
     integer: 'integer value',
@@ -749,6 +758,10 @@ False.executeStep = function () {
         getCharacter();
         return;
       }
+      if (False.state.run.singleStep) {
+        call.step -= 1;
+        return;
+      }
       return False.makeInterrupt(function (interruptContinuation) {
         unscanned.oninput = function () {
           unscanned.oninput = undefined;
@@ -1017,6 +1030,7 @@ False.singleStep = function () {
   if (!False.running) {
     False.startRunning();
   }
+  False.state.run.singleStep = true;
   var outcome = False.executeStep();
   if (False.isError(outcome)) {
     False.errorMessage(outcome.error);
@@ -1091,6 +1105,7 @@ False.run = function () {
     False.startRunning();
   }
   var syntaxTree = False.parseResult.tree;
+  False.state.run.singleStep = false;
   False.message('run');
   var programCall = False.callStack[0];
   var step = function () {
@@ -1126,6 +1141,7 @@ False.visualRun = function () {
     False.startRunning();
   }
   var syntaxTree = False.parseResult.tree;
+  False.state.run.singleStep = false;
   False.message('visual run');
   var programCall = False.callStack[0],
       delay = 1000 / False.visual.hertz;
