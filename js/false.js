@@ -4,15 +4,7 @@ False.option = {
   type: { coercion: true },
   stack: { scrollDown: true },
   step: { limit: 1000 },
-};
-
-False.visual = {
-  hertz: 10,
-  active: false
-};
-
-False.step = {
-  counter: -1
+  visual: { hertz: 10 }
 };
 
 False.state = {
@@ -22,6 +14,10 @@ False.state = {
     singleStep: false
   },
   halt: 'running'  // or 'input' or 'error'
+};
+
+False.step = {
+  counter: -1
 };
 
 False.lexical = {
@@ -1144,8 +1140,7 @@ False.visualRun = function () {
   False.state.run.singleStep = false;
   False.message('visual run');
   var programCall = False.callStack[0],
-      delay = 1000 / False.visual.hertz;
-  False.visual.active = true;
+      delay = 1000 / False.option.visual.hertz;
   var visualStep = function () {
     if (programCall.step >= programCall.length) {
       False.resumeEditing();
@@ -1261,7 +1256,7 @@ window.onload = function () {
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
-  sourceInput.value = ' ^ a: "You entered: " a; ,';
+  sourceInput.value = '^ a: "You entered: " a;,"\n"';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('resetButton').onclick = False.reset;
   document.getElementById('stepButton').onclick = False.singleStep;
