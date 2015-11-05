@@ -41,7 +41,7 @@ button:hover {
 #visualRunButtons, #characterButtons {
   display: inline;
 }
-#runButton, #resetButton {
+#runButton, #stopButton {
   margin-right: 10px;
 }
 #visualRunButtons {
@@ -54,11 +54,11 @@ button.fastRun {
   color: #197847;
   border-color: #197847;
 }
-#resetButton {
+#stopButton {
   color: #888;
   border-color: #888;
 }
-#resetButton:hover {
+#stopButton:hover {
   background: #eee;
   color: #444;
   border-color: #444;

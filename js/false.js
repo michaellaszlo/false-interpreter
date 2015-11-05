@@ -858,11 +858,6 @@ False.clearVariables = function () {
   });
 };
 
-False.clearIO = function () {
-  False.stream = { input: [], output: [] };
-  False.console = [];
-  False.io.clearOutputDisplay();
-};
 False.io = {};
 // A display is a div of divs. Each inner div contains a single span,
 // the contents of which constitute one line.
@@ -899,22 +894,7 @@ False.io.addText = function (display, text) {
   display.currentInner.innerHTML += lines[lines.length - 1];
 };
 False.io.write = function (text) {  // Write to the output stream.
-  False.stream.output.push(text);
   False.io.addText(False.display.output, text);
-};
-False.io.clearOutput = function () {
-  var stream = False.stream.output;
-  text = stream.join('');
-  stream.splice(0, stream.length);
-  False.io.clearOutputDisplay();
-  return text;
-};
-False.io.clearInput = function () {
-  return '';
-};
-False.io.consoleWrite = function (text) {
-  False.console.push(text);
-  False.io.addText(False.display.console, text);
 };
 
 False.errorMessage = function (s) {
@@ -1018,12 +998,10 @@ False.finishCall = function () {
 };
 
 False.singleStep = function () {
-  if (!False.callStack || False.callStack.length == 0) {
-    if (!False.reset()) {
+  if (!False.running) {
+    if (!False.prepareToRun()) {
       return;
     }
-  }
-  if (!False.running) {
     False.startRunning();
   }
   False.state.run.singleStep = true;
@@ -1036,20 +1014,24 @@ False.singleStep = function () {
   }
 };
 
-False.reset = function () {
+False.rewind = function () {
+  False.clearMessages();
   False.clearCallStack();
   False.clearStack();
   False.clearVariables();
-  False.clearIO();
-  False.clearMessages();
-  False.step.counter = 0;
   unscanned.oninput = undefined;
+  False.io.clearOutputDisplay();
+  False.resumeEditing();
+};
+
+False.prepareToRun = function () {
+  False.rewind();
+  False.step.counter = 0;
   False.makeParseTree();
   if (False.parseResult.errors.length != 0) {
     return false;
   }
   False.startCall(False.parseResult.tree);
-  False.resumeEditing();
   return true;
 };
 
@@ -1092,16 +1074,14 @@ False.makeParseTree = function () {
 };
 
 False.run = function () {
-  if (!False.callStack || False.callStack.length == 0) {
-    if (!False.reset()) {
+  if (!False.running) {
+    if (!False.prepareToRun()) {
       return;
     }
-  }
-  if (!False.running) {
     False.startRunning();
   }
-  var syntaxTree = False.parseResult.tree;
   False.state.run.singleStep = false;
+  var syntaxTree = False.parseResult.tree;
   False.message('run');
   var programCall = False.callStack[0];
   var step = function () {
@@ -1128,16 +1108,14 @@ False.run = function () {
 };
 
 False.visualRun = function () {
-  if (!False.callStack || False.callStack.length == 0) {
-    if (!False.reset()) {
+  if (!False.running) {
+    if (!False.prepareToRun()) {
       return;
     }
-  }
-  if (!False.running) {
     False.startRunning();
   }
-  var syntaxTree = False.parseResult.tree;
   False.state.run.singleStep = false;
+  var syntaxTree = False.parseResult.tree;
   False.message('visual run');
   var programCall = False.callStack[0],
       delay = 1000 / False.option.visual.hertz;
@@ -1258,7 +1236,7 @@ window.onload = function () {
   sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
   sourceInput.value = '^ a: "You entered: " a;,"\n"';
   document.getElementById('runButton').onclick = False.run;
-  document.getElementById('resetButton').onclick = False.reset;
+  document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   False.resumeEditing();
