@@ -991,7 +991,7 @@ False.finishCall = function () {
   var call = False.callStack.pop();
   False.display.callStack.removeChild(call.item);
   if (call.isWhileBody) {
-    False.finishCall();
+    False.finishCall();  // We have to pop the while condition too.
   }
   False.callIndex = False.callStack.length - 1;
 };
@@ -1007,6 +1007,11 @@ False.singleStep = function () {
   var outcome = False.executeStep();
   if (False.isError(outcome)) {
     False.errorMessage(outcome.error);
+  }
+  if (False.callStack.length == 0) {
+    False.rewind();
+    False.message('done');
+    return;
   }
 };
 
@@ -1083,7 +1088,7 @@ False.run = function () {
   False.message('run');
   var programCall = False.callStack[0];
   var step = function () {
-    if (programCall.step >= programCall.length) {
+    if (False.callStack.length == 0) {
       False.rewind();
       False.message('done');
       return;
@@ -1119,7 +1124,7 @@ False.visualRun = function () {
   var programCall = False.callStack[0],
       delay = 1000 / False.option.visual.hertz;
   var visualStep = function () {
-    if (programCall.step >= programCall.length) {
+    if (False.callStack.length == 0) {
       False.rewind();
       False.message('done');
       return;
