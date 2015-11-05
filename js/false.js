@@ -1133,7 +1133,7 @@ False.visualRun = function () {
       console.log('interrupt');
       outcome.interruptHandler(function () {
         console.log('resume');
-        step();
+        visualStep();
       });
       return;
     }
