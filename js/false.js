@@ -754,14 +754,13 @@ False.executeStep = function () {
         getCharacter();
         return;
       }
+      call.step -= 1;
       if (False.state.run.singleStep) {
-        call.step -= 1;
         return;
       }
       return False.makeInterrupt(function (interruptContinuation) {
         unscanned.oninput = function () {
           unscanned.oninput = undefined;
-          getCharacter();
           interruptContinuation();
         };
       });
@@ -1009,9 +1008,6 @@ False.singleStep = function () {
   if (False.isError(outcome)) {
     False.errorMessage(outcome.error);
   }
-  if (False.isInterrupt(outcome)) {
-    outcome.interruptHandler(function () {});
-  }
 };
 
 False.rewind = function () {
@@ -1103,6 +1099,7 @@ False.run = function () {
         console.log('resume');
         step();
       });
+      return;
     }
     step();
   }
@@ -1138,6 +1135,7 @@ False.visualRun = function () {
         console.log('resume');
         step();
       });
+      return;
     }
     False.runTimeout = window.setTimeout(visualStep, delay);
   };
