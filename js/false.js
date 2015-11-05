@@ -1015,17 +1015,19 @@ False.singleStep = function () {
 };
 
 False.rewind = function () {
-  False.clearMessages();
-  False.clearCallStack();
-  False.clearStack();
-  False.clearVariables();
+  False.display.input.unscanned.value = False.io.initialInput || '';
+  unscanned = False.display.input.unscanned;
   unscanned.oninput = undefined;
-  False.io.clearOutputDisplay();
   False.resumeEditing();
 };
 
 False.prepareToRun = function () {
-  False.rewind();
+  False.clearMessages();
+  False.clearCallStack();
+  False.clearStack();
+  False.clearVariables();
+  False.io.clearOutputDisplay();
+  False.io.initialInput = False.display.input.unscanned.value;
   False.step.counter = 0;
   False.makeParseTree();
   if (False.parseResult.errors.length != 0) {
@@ -1086,7 +1088,7 @@ False.run = function () {
   var programCall = False.callStack[0];
   var step = function () {
     if (programCall.step >= programCall.length) {
-      False.resumeEditing();
+      False.rewind();
       False.message('done');
       return;
     }
@@ -1121,7 +1123,7 @@ False.visualRun = function () {
       delay = 1000 / False.option.visual.hertz;
   var visualStep = function () {
     if (programCall.step >= programCall.length) {
-      False.resumeEditing();
+      False.rewind();
       False.message('done');
       return;
     }
@@ -1239,9 +1241,9 @@ window.onload = function () {
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
-  False.resumeEditing();
-  False.singleStep();
+  False.rewind();
   return;
+  False.singleStep();
   for (var i = 0; i < 23; ++i) {
     False.singleStep();
   }
