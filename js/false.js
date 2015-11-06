@@ -1005,6 +1005,7 @@ False.singleStep = function () {
     }
     False.startRunning();
   }
+  False.state.run.halted = false;
   False.state.run.singleStep = true;
   var outcome = False.executeStep();
   if (False.isError(outcome)) {
@@ -1022,6 +1023,10 @@ False.rewind = function () {
   unscanned = False.display.input.unscanned;
   unscanned.oninput = undefined;
   False.resumeEditing();
+};
+
+False.pause = function () {
+  False.state.run.halted = true;
 };
 
 False.prepareToRun = function () {
@@ -1085,11 +1090,15 @@ False.run = function () {
     }
     False.startRunning();
   }
+  False.state.run.halted = false;
   False.state.run.singleStep = false;
   var syntaxTree = False.parseResult.tree;
   False.message('run');
   var programCall = False.callStack[0];
   var step = function () {
+    if (False.state.run.halted) {
+      return;
+    }
     if (False.callStack.length == 0) {
       False.rewind();
       False.message('done');
@@ -1120,12 +1129,16 @@ False.visualRun = function () {
     }
     False.startRunning();
   }
+  False.state.run.halted = false;
   False.state.run.singleStep = false;
   var syntaxTree = False.parseResult.tree;
   False.message('visual run');
   var programCall = False.callStack[0],
       delay = 1000 / False.option.visual.hertz;
   var visualStep = function () {
+    if (False.state.run.halted) {
+      return;
+    }
     if (False.callStack.length == 0) {
       False.rewind();
       False.message('done');
@@ -1240,13 +1253,14 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
   sourceInput.value = '^ a: "You entered: " a;,"\n" ß';
+  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
   document.getElementById('runButton').onclick = False.run;
-  document.getElementById('stopButton').onclick = False.rewind;
-  document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('visualRunButton').onclick = False.visualRun;
-  False.rewind();
+  document.getElementById('stepButton').onclick = False.singleStep;
+  document.getElementById('stopButton').onclick = False.rewind;
+  document.getElementById('pauseButton').onclick = False.pause;
+  False.visualRun();
   return;
   False.singleStep();
   for (var i = 0; i < 23; ++i) {
