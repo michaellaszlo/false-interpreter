@@ -1023,6 +1023,7 @@ False.singleStep = function () {
 
 False.rewind = function () {
   False.state.run.halted = true;
+  False.state.run.error = false;
   False.display.input.unscanned.value = False.io.initialInput || '';
   unscanned = False.display.input.unscanned;
   unscanned.oninput = undefined;
@@ -1040,13 +1041,12 @@ False.clearRunInterface = function () {
   False.clearCallStack();
   False.clearStack();
   False.clearVariables();
-  False.io.clearOutputDisplay();
 };
 
 False.prepareToRun = function () {
   False.clearRunInterface();
+  False.io.clearOutputDisplay();
   False.io.initialInput = False.display.input.unscanned.value;
-  False.state.run.error = false;
   False.step.counter = 0;
   False.makeParseTree();
   if (False.parseResult.errors.length != 0) {
