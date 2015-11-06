@@ -1013,28 +1013,34 @@ False.singleStep = function () {
   }
   if (False.callStack.length == 0) {
     False.rewind();
-    False.message('done');
     return;
   }
 };
 
 False.rewind = function () {
+  False.state.run.halted = true;
   False.display.input.unscanned.value = False.io.initialInput || '';
   unscanned = False.display.input.unscanned;
   unscanned.oninput = undefined;
+  False.clearRunInterface();
   False.resumeEditing();
+  False.message('done');
 };
 
 False.pause = function () {
   False.state.run.halted = true;
 };
 
-False.prepareToRun = function () {
+False.clearRunInterface = function () {
   False.clearMessages();
   False.clearCallStack();
   False.clearStack();
   False.clearVariables();
   False.io.clearOutputDisplay();
+};
+
+False.prepareToRun = function () {
+  False.clearRunInterface();
   False.io.initialInput = False.display.input.unscanned.value;
   False.step.counter = 0;
   False.makeParseTree();
@@ -1101,7 +1107,6 @@ False.run = function () {
     }
     if (False.callStack.length == 0) {
       False.rewind();
-      False.message('done');
       return;
     }
     var outcome = False.executeStep();
@@ -1141,7 +1146,6 @@ False.visualRun = function () {
     }
     if (False.callStack.length == 0) {
       False.rewind();
-      False.message('done');
       return;
     }
     var outcome = False.executeStep();
