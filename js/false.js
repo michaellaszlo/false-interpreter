@@ -4,7 +4,7 @@ False.option = {
   type: { coercion: true },
   stack: { scrollDown: true },
   step: { limit: 1000 },
-  visual: { hertz: 10 }
+  visual: { hertz: 2 }
 };
 
 False.state = {
@@ -748,7 +748,7 @@ False.executeStep = function () {
         var ch = unscanned.value.charAt(0);
         False.push(False.makeCharacterItem(ch));
         unscanned.value = unscanned.value.substring(1);
-        False.display.input.scanned += ch;
+        False.display.input.scanned.innerHTML += ch;
       };
       if (unscanned.value.length != 0) {
         getCharacter();
@@ -766,8 +766,10 @@ False.executeStep = function () {
       });
     }
     if (symbol == 'ß') {
-      var input = False.io.clearInput();
-      False.io.write(input);
+      var scanned = False.display.input.scanned.innerHTML;
+      console.log('scanned:', scanned);
+      False.display.input.scanned.value = '';
+      False.io.write(scanned);
       return;
     }
   }
@@ -1189,7 +1191,7 @@ window.onload = function () {
       scanned = False.display.input.scanned,
       unscanned = False.display.input.unscanned;
   scanned.id = 'scanned';
-  container.appendChild(scanned);
+  //container.appendChild(scanned);
   unscanned.id = 'unscanned';
   unscanned.className = 'display';
   unscanned.spellcheck = false;
@@ -1239,7 +1241,7 @@ window.onload = function () {
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
-  sourceInput.value = '^ a: "You entered: " a;,"\n"';
+  sourceInput.value = '^ a: "You entered: " a;,"\n" ß';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('stepButton').onclick = False.singleStep;
