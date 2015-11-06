@@ -451,7 +451,7 @@ False.executeStep = function () {
       False.finishCall();
     }
     if (callStack.length != 0) {
-      False.executeStep();
+      return False.executeStep();
     }
     return;
   }
@@ -999,6 +999,9 @@ False.finishCall = function () {
 };
 
 False.singleStep = function () {
+  if (False.state.run.error) {
+    return;
+  }
   if (!False.running) {
     if (!False.prepareToRun()) {
       return;
@@ -1010,6 +1013,7 @@ False.singleStep = function () {
   var outcome = False.executeStep();
   if (False.isError(outcome)) {
     False.errorMessage(outcome.error);
+    False.state.run.error = true;
   }
   if (False.callStack.length == 0) {
     False.rewind();
@@ -1042,6 +1046,7 @@ False.clearRunInterface = function () {
 False.prepareToRun = function () {
   False.clearRunInterface();
   False.io.initialInput = False.display.input.unscanned.value;
+  False.state.run.error = false;
   False.step.counter = 0;
   False.makeParseTree();
   if (False.parseResult.errors.length != 0) {
@@ -1090,6 +1095,9 @@ False.makeParseTree = function () {
 };
 
 False.run = function () {
+  if (False.state.run.error) {
+    return;
+  }
   if (!False.running) {
     if (!False.prepareToRun()) {
       return;
@@ -1112,6 +1120,7 @@ False.run = function () {
     var outcome = False.executeStep();
     if (False.isError(outcome)) {
       False.errorMessage(outcome.error);
+      False.state.run.error = true;
       return;
     }
     if (False.isInterrupt(outcome)) {
@@ -1128,6 +1137,9 @@ False.run = function () {
 };
 
 False.visualRun = function () {
+  if (False.state.run.error) {
+    return;
+  }
   if (!False.running) {
     if (!False.prepareToRun()) {
       return;
@@ -1151,6 +1163,7 @@ False.visualRun = function () {
     var outcome = False.executeStep();
     if (False.isError(outcome)) {
       False.errorMessage(outcome.error);
+      False.state.run.error = true;
       return;
     }
     if (False.isInterrupt(outcome)) {
@@ -1258,12 +1271,13 @@ window.onload = function () {
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
   sourceInput.value = '^ a: "You entered: " a;,"\n" ß';
-  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+. \' ,\'h,"ello\n" ]\n@a:\n# ß';
+  sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+.. \' ,\'h,"ello\n" ]\n@a:\n# ß';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('pauseButton').onclick = False.pause;
+  False.run();
   False.visualRun();
   return;
   False.singleStep();
