@@ -132,9 +132,11 @@ button.character:hover {
   position: relative;
 }
 #scanned {
+  position: absolute;
 }
 #unscanned {
   position: absolute;
+  background: transparent;
 }
 
 #variables {
@@ -250,6 +252,6 @@ button.character:hover {
   border: 5px solid #91afcf;
   background: #eee;
 }
-#unscanned, #sourceInput {
+#unscanned, #scanned, #sourceInput {
   padding: 5px 10px;
 }

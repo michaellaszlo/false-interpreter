@@ -4,7 +4,7 @@ False.option = {
   type: { coercion: true },
   stack: { scrollDown: true },
   step: { limit: 1000 },
-  visual: { hertz: 2 }
+  visual: { hertz: 5 }
 };
 
 False.state = {
@@ -1221,7 +1221,8 @@ window.onload = function () {
       scanned = False.display.input.scanned,
       unscanned = False.display.input.unscanned;
   scanned.id = 'scanned';
-  //container.appendChild(scanned);
+  scanned.className = 'display';
+  container.appendChild(scanned);
   unscanned.id = 'unscanned';
   unscanned.className = 'display';
   unscanned.spellcheck = false;
@@ -1270,14 +1271,15 @@ window.onload = function () {
   sourceInput.value = '2 2 * 1 + ';
   sourceInput.value = '7 8 9 [ 1 + ] ! 0 ø';
   sourceInput.value = ' [ $ 1 + ] f:\n 10 1 1 = f; ? ';
-  sourceInput.value = '^ a: "You entered: " a;,"\n" ß';
   sourceInput.value = '3\n[ a; 1 - $ a: 1_ > ]\n[ \' ,a;1+.. \' ,\'h,"ello\n" ]\n@a:\n# ß';
+  sourceInput.value = '^ a: "You entered: " a;,"\n"';
+  sourceInput.value = '"Enter something: " 0a: [ ^ $ 10 =~ ][a;1+a:]# ß % a;$." characters\n" "reversed: " [ $ 0 = ~ ][ \\ , 1 - ]# % 10, ';
   document.getElementById('runButton').onclick = False.run;
   document.getElementById('visualRunButton').onclick = False.visualRun;
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('pauseButton').onclick = False.pause;
-  False.run();
+  False.display.input.unscanned.value = 'A man, a plan, a canal, Panama.\n';
   False.visualRun();
   return;
   False.singleStep();
