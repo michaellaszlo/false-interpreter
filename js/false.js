@@ -4,7 +4,7 @@ False.option = {
   type: { coercion: true },
   stack: { scrollDown: true },
   step: { limit: 1000 },
-  visual: { hertz: 5 }
+  visual: { hertz: 8 }
 };
 
 False.state = {
@@ -743,12 +743,14 @@ False.executeStep = function () {
       return;
     }
     if (symbol == '^') {
-      var unscanned = False.display.input.unscanned;
+      var unscanned = False.display.input.unscanned,
+          shadow = False.display.input.shadow;
       var getCharacter = function () {
         var ch = unscanned.value.charAt(0);
         False.push(False.makeCharacterItem(ch));
         unscanned.value = unscanned.value.substring(1);
-        False.display.input.shadow.scanned.innerHTML += ch;
+        shadow.scanned.innerHTML += ch;
+        False.updateInputPosition();
       };
       if (unscanned.value.length != 0) {
         getCharacter();
@@ -767,12 +769,24 @@ False.executeStep = function () {
     }
     if (symbol == 'ß') {
       var scanned = False.display.input.shadow.scanned.innerHTML;
-      console.log('scanned:', scanned);
       False.display.input.shadow.scanned.innerHTML = '';
+      False.updateInputPosition();
       False.io.write(scanned);
       return;
     }
   }
+};
+
+False.updateInputPosition = function () {
+  var unscanned = False.display.input.unscanned,
+      shadow = False.display.input.shadow,
+      container = False.display.input.container,
+      currentOffset = M.getOffset(shadow.caret, container),
+      originalOffset = shadow.caret.originalOffset,
+      left = currentOffset.left - originalOffset.left,
+      top = currentOffset.top - originalOffset.top;
+  unscanned.style.textIndent = left + 'px';
+  unscanned.style.top = top + 'px';
 };
 
 False.removeChildren = function (display) {
@@ -1024,6 +1038,8 @@ False.singleStep = function () {
 False.rewind = function () {
   False.state.run.halted = true;
   False.state.run.error = false;
+  False.display.input.shadow.scanned.innerHTML = '';
+  False.updateInputPosition();
   False.display.input.unscanned.value = False.io.initialInput || '';
   unscanned = False.display.input.unscanned;
   unscanned.oninput = undefined;
@@ -1237,6 +1253,7 @@ window.onload = function () {
   shadow.eof.className = 'eof';
   shadow.container.appendChild(shadow.eof);
   container.appendChild(shadow.container);
+  shadow.caret.originalOffset = M.getOffset(shadow.caret, container);
   unscanned.id = 'unscanned';
   unscanned.className = 'display';
   unscanned.spellcheck = false;

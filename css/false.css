@@ -134,12 +134,14 @@ button.character:hover {
 #unscanned {
   position: absolute;
   background: transparent;
+  top: 0;
+  left: 0;
 }
 #shadow {
   position: absolute;
 }
 #shadow .scanned {
-  color: #888;
+  color: #a39aa9;
 }
 #shadow .caret {
 }
