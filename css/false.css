@@ -141,11 +141,11 @@ button.character:hover {
 #shadow .scanned {
   color: #888;
 }
+#shadow .caret {
+}
 #shadow .unscanned {
-  color: #888;
 }
 #shadow .eof {
-  color: #888;
 }
 
 #variables {

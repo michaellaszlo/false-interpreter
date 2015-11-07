@@ -1216,6 +1216,7 @@ window.onload = function () {
     shadow: {
       container: document.createElement('div'),
       unscanned: document.createElement('span'),
+      caret: document.createElement('span'),
       scanned: document.createElement('span'),
       eof: document.createElement('span')
     },
@@ -1228,6 +1229,9 @@ window.onload = function () {
   shadow.container.className = 'display';
   shadow.scanned.className = 'scanned';
   shadow.container.appendChild(shadow.scanned);
+  shadow.caret.className = 'caret';
+  shadow.caret.innerHTML = '&#x2038;';
+  shadow.container.appendChild(shadow.caret);
   shadow.unscanned.className = 'unscanned';
   shadow.container.appendChild(shadow.unscanned);
   shadow.eof.className = 'eof';
