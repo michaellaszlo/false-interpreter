@@ -748,7 +748,7 @@ False.executeStep = function () {
         var ch = unscanned.value.charAt(0);
         False.push(False.makeCharacterItem(ch));
         unscanned.value = unscanned.value.substring(1);
-        False.display.input.scanned.innerHTML += ch;
+        False.display.input.shadow.scanned.innerHTML += ch;
       };
       if (unscanned.value.length != 0) {
         getCharacter();
@@ -766,9 +766,9 @@ False.executeStep = function () {
       });
     }
     if (symbol == 'ß') {
-      var scanned = False.display.input.scanned.innerHTML;
+      var scanned = False.display.input.shadow.scanned.innerHTML;
       console.log('scanned:', scanned);
-      False.display.input.scanned.value = '';
+      False.display.input.shadow.scanned.innerHTML = '';
       False.io.write(scanned);
       return;
     }
@@ -1027,7 +1027,6 @@ False.rewind = function () {
   False.display.input.unscanned.value = False.io.initialInput || '';
   unscanned = False.display.input.unscanned;
   unscanned.oninput = undefined;
-  False.clearRunInterface();
   False.resumeEditing();
   False.message('done');
 };
@@ -1041,11 +1040,11 @@ False.clearRunInterface = function () {
   False.clearCallStack();
   False.clearStack();
   False.clearVariables();
+  False.io.clearOutputDisplay();
 };
 
 False.prepareToRun = function () {
   False.clearRunInterface();
-  False.io.clearOutputDisplay();
   False.io.initialInput = False.display.input.unscanned.value;
   False.step.counter = 0;
   False.makeParseTree();
@@ -1214,15 +1213,26 @@ window.onload = function () {
 
   False.display.input = {
     container: document.getElementById('input'),
-    scanned: document.createElement('div'),
+    shadow: {
+      container: document.createElement('div'),
+      unscanned: document.createElement('span'),
+      scanned: document.createElement('span'),
+      eof: document.createElement('span')
+    },
     unscanned: document.createElement('textarea')
   };
   var container = False.display.input.container,
-      scanned = False.display.input.scanned,
+      shadow = False.display.input.shadow,
       unscanned = False.display.input.unscanned;
-  scanned.id = 'scanned';
-  scanned.className = 'display';
-  container.appendChild(scanned);
+  shadow.container.id = 'shadow';
+  shadow.container.className = 'display';
+  shadow.scanned.className = 'scanned';
+  shadow.container.appendChild(shadow.scanned);
+  shadow.unscanned.className = 'unscanned';
+  shadow.container.appendChild(shadow.unscanned);
+  shadow.eof.className = 'eof';
+  shadow.container.appendChild(shadow.eof);
+  container.appendChild(shadow.container);
   unscanned.id = 'unscanned';
   unscanned.className = 'display';
   unscanned.spellcheck = false;

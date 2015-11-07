@@ -131,12 +131,21 @@ button.character:hover {
 #input {
   position: relative;
 }
-#scanned {
-  position: absolute;
-}
 #unscanned {
   position: absolute;
   background: transparent;
+}
+#shadow {
+  position: absolute;
+}
+#shadow .scanned {
+  color: #888;
+}
+#shadow .unscanned {
+  color: #888;
+}
+#shadow .eof {
+  color: #888;
 }
 
 #variables {
@@ -252,6 +261,6 @@ button.character:hover {
   border: 5px solid #91afcf;
   background: #eee;
 }
-#unscanned, #scanned, #sourceInput {
+#unscanned, #shadow, #sourceInput {
   padding: 5px 10px;
 }
