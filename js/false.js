@@ -1246,7 +1246,11 @@ window.onload = function () {
   shadow.scanned.className = 'scanned';
   shadow.container.appendChild(shadow.scanned);
   shadow.caret.className = 'caret';
-  shadow.caret.innerHTML = '&#x2038;';
+  shadow.caret.innerHTML = '&nbsp;';
+  var marker = document.createElement('span');
+  marker.className = 'marker';
+  marker.innerHTML = '&#x2038;';
+  shadow.caret.appendChild(marker);
   shadow.container.appendChild(shadow.caret);
   shadow.unscanned.className = 'unscanned';
   shadow.container.appendChild(shadow.unscanned);
@@ -1254,6 +1258,7 @@ window.onload = function () {
   shadow.container.appendChild(shadow.eof);
   container.appendChild(shadow.container);
   shadow.caret.originalOffset = M.getOffset(shadow.caret, container);
+  marker.style.left = -1 - marker.offsetWidth / 2 + 'px';
   unscanned.id = 'unscanned';
   unscanned.className = 'display';
   unscanned.spellcheck = false;

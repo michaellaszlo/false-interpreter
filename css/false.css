@@ -144,6 +144,13 @@ button.character:hover {
   color: #a39aa9;
 }
 #shadow .caret {
+  position: relative;
+}
+#shadow .caret .marker {
+  position: absolute;
+  color: #931e30;
+  font-size: 22px;
+  font-weight:bold;
 }
 #shadow .unscanned {
 }
