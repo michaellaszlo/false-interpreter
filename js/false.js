@@ -1324,10 +1324,7 @@ window.onload = function () {
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('pauseButton').onclick = False.pause;
   False.display.input.unscanned.value = 'A man, a plan, a canal, Panama.\n';
-  False.visualRun();
-  return;
-  False.singleStep();
-  for (var i = 0; i < 23; ++i) {
+  while (False.step.counter <= 291) {
     False.singleStep();
   }
 };

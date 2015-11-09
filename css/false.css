@@ -103,6 +103,9 @@ button.character:hover {
   height: 30%;
   border: 5px solid #ded2e7;
 }
+div, textarea {
+  word-break: break-all;
+}
 #output {
   height: 30%;
   border: 5px solid #cddee7;
