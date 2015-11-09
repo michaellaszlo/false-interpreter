@@ -418,6 +418,7 @@ False.isInterrupt = function (result) {
 };
 
 False.executeStep = function () {
+  False.step.display();
   if (++False.step.counter > False.option.step.limit) {
     console.log('exceeded ' + False.option.step.limit + ' steps');
     return False.makeError('exceeded ' + False.option.step.limit + ' steps');
@@ -1059,10 +1060,16 @@ False.clearRunInterface = function () {
   False.io.clearOutputDisplay();
 };
 
+False.step.display = function () {
+  False.display.step.innerHTML = '<span class="label">step </span>' +
+      False.step.counter;
+};
+
 False.prepareToRun = function () {
   False.clearRunInterface();
   False.io.initialInput = False.display.input.unscanned.value;
   False.step.counter = 0;
+  False.step.display();
   False.makeParseTree();
   if (False.parseResult.errors.length != 0) {
     return false;
@@ -1266,6 +1273,7 @@ window.onload = function () {
 
   False.display.output = document.getElementById('outputDisplay');
 
+  False.display.step = document.getElementById('stepCount');
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');
   False.display.callStack = document.getElementById('callStack');

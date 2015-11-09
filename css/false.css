@@ -190,7 +190,7 @@ button.character:hover {
 }
 
 #messages {
-  width: 50%;
+  width: 40%;
   font-size: 14px;
 }
 #messages {
@@ -199,6 +199,15 @@ button.character:hover {
   top: 0;
   border: 2px solid #cfca9a;
   padding: 2px 20px;
+}
+#stepCount {
+  font-size: 18px;
+  color: #444;
+  margin-right: 15px;
+}
+#stepCount .label {
+  font-size: 14px;
+  color: #888;
 }
 #messages .message {
   border-bottom: 1px dotted #ccc;
