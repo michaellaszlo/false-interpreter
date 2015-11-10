@@ -419,9 +419,9 @@ False.isInterrupt = function (result) {
 
 False.executeStep = function () {
   False.step.display();
-  if (++False.step.counter > False.option.step.limit) {
-    console.log('exceeded ' + False.option.step.limit + ' steps');
-    return False.makeError('exceeded ' + False.option.step.limit + ' steps');
+  if (False.step.counter == False.option.step.limit) {
+    console.log('reached ' + False.option.step.limit + ' steps');
+    return False.makeError('reached ' + False.option.step.limit + ' steps');
   }
   var callStack = False.callStack;
   if (callStack.length == 0) {
@@ -456,6 +456,7 @@ False.executeStep = function () {
     }
     return;
   }
+  False.step.counter += 1;
   M.classAdd(call.spans[call.step], 'executing');
   var node = call.tree.children[call.step],
       lexical = False.lexical,
