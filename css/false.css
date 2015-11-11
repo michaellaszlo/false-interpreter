@@ -100,14 +100,14 @@ button.character:hover {
   height: 100%;
 }
 #input {
-  height: 30%;
+  height: 35%;
   border: 5px solid #ded2e7;
 }
 div, textarea {
   word-break: break-all;
 }
 #output {
-  height: 30%;
+  height: 35%;
   border: 5px solid #cddee7;
 }
 .display {
@@ -161,7 +161,7 @@ div, textarea {
 }
 
 #variables {
-  height: 40%;
+  height: 30%;
 }
 
 #variables {
@@ -186,9 +186,6 @@ div, textarea {
   border-radius: 6px;
 }
 .variable.unused {
-  background: #c9d1cf;
-}
-.variable.unused .value {
   display: none;
 }
 
