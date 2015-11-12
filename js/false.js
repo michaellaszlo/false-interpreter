@@ -1263,6 +1263,7 @@ window.onload = function () {
   shadow.unscanned.className = 'unscanned';
   shadow.container.appendChild(shadow.unscanned);
   shadow.eof.className = 'eof';
+  shadow.eof.innerHTML = 'EOF';
   shadow.container.appendChild(shadow.eof);
   container.appendChild(shadow.container);
   shadow.caret.originalOffset = M.getOffset(shadow.caret, container);

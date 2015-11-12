@@ -158,6 +158,8 @@ div, textarea {
 #shadow .unscanned {
 }
 #shadow .eof {
+  background: #444;
+  color: #fff;
 }
 
 #variables {
