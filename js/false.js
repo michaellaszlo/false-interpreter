@@ -750,7 +750,9 @@ False.executeStep = function () {
       var getCharacter = function () {
         var ch = unscanned.value.charAt(0);
         False.push(False.makeCharacterItem(ch));
-        unscanned.value = unscanned.value.substring(1);
+        unscanned.value = 
+            shadow.unscanned.innerHTML =
+            unscanned.value.substring(1);
         shadow.scanned.innerHTML += ch;
         False.updateInputPosition();
       };
@@ -763,8 +765,8 @@ False.executeStep = function () {
         return;
       }
       return False.makeInterrupt(function (interruptContinuation) {
-        unscanned.oninput = function () {
-          unscanned.oninput = undefined;
+        unscanned.action = function () {
+          unscanned.action = undefined;
           interruptContinuation();
         };
       });
@@ -1042,9 +1044,11 @@ False.rewind = function () {
   False.state.run.error = false;
   False.display.input.shadow.scanned.innerHTML = '';
   False.updateInputPosition();
-  False.display.input.unscanned.value = False.io.initialInput || '';
+  False.display.input.unscanned.value =
+      False.display.input.shadow.unscanned.innerHTML =
+      False.io.initialInput || '';
   unscanned = False.display.input.unscanned;
-  unscanned.oninput = undefined;
+  unscanned.action = undefined;
   False.resumeEditing();
   False.message('done');
 };
@@ -1068,7 +1072,9 @@ False.step.display = function () {
 
 False.prepareToRun = function () {
   False.clearRunInterface();
-  False.io.initialInput = False.display.input.unscanned.value;
+  False.io.initialInput =
+      False.display.input.shadow.unscanned.innerHTML =
+      False.display.input.unscanned.value;
   False.step.counter = 0;
   False.step.display();
   False.makeParseTree();
@@ -1272,6 +1278,12 @@ window.onload = function () {
   unscanned.className = 'display';
   unscanned.spellcheck = false;
   container.appendChild(unscanned);
+  unscanned.oninput = function () {
+    if (unscanned.action !== undefined) {
+      unscanned.action();
+    }
+    shadow.unscanned.innerHTML = unscanned.value;
+  };
 
   False.display.output = document.getElementById('outputDisplay');
 
