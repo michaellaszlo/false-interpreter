@@ -1260,7 +1260,6 @@ window.onload = function () {
   shadow.scanned.className = 'scanned';
   shadow.container.appendChild(shadow.scanned);
   shadow.caret.className = 'caret';
-  shadow.caret.innerHTML = '&nbsp;';
   var marker = document.createElement('span');
   marker.className = 'marker';
   marker.innerHTML = '&#x2038;';
