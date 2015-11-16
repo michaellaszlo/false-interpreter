@@ -1210,13 +1210,13 @@ False.visualRun = function () {
 
 False.resumeEditing = function () {
   M.classAdd(False.display.callStack, 'hidden');
-  M.classRemove(False.sourceInput, 'hidden');
+  M.classRemove(False.display.source, 'hidden');
   False.running = false;
 };
 
 False.startRunning = function () {
   M.classRemove(False.display.callStack, 'hidden');
-  M.classAdd(False.sourceInput, 'hidden');
+  M.classAdd(False.display.source, 'hidden');
   False.running = true;
 };
 
@@ -1278,10 +1278,12 @@ window.onload = function () {
   unscanned.spellcheck = false;
   container.appendChild(unscanned);
   unscanned.oninput = function () {
+    return;
     if (unscanned.action !== undefined) {
       unscanned.action();
     }
     shadow.unscanned.innerHTML = unscanned.value;
+    console.log('"' + unscanned.value + '"');
   };
 
   False.display.output = document.getElementById('outputDisplay');
@@ -1290,6 +1292,7 @@ window.onload = function () {
   False.display.messages = document.getElementById('messages');
   False.display.stack = document.getElementById('stack');
   False.display.callStack = document.getElementById('callStack');
+  False.display.source = document.getElementById('source');
 
   var sourceInput = False.sourceInput = document.getElementById('sourceInput');
   False.sourceInput.spellcheck = false;
@@ -1308,6 +1311,7 @@ window.onload = function () {
   };
   document.getElementById('betaButton').onclick = makeInsertHandler('ß');
   document.getElementById('oslashButton').onclick = makeInsertHandler('ø');
+  False.resumeEditing();
 
   // Sample programs.
   sourceInput.value = '{ Conversation. }\n' +
@@ -1337,6 +1341,7 @@ window.onload = function () {
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('pauseButton').onclick = False.pause;
   False.display.input.unscanned.value = 'A man, a plan, a canal, Panama.\n';
+  return;
   while (False.step.counter <= 291) {
     False.singleStep();
   }

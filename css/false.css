@@ -92,6 +92,7 @@ button.character:hover {
   top: 70px;
   padding-bottom: 70px;
   height: 100%;
+  width: 100%;
 }
 
 #consoleAndVariables, #stack, #callStack, #source {
@@ -139,6 +140,7 @@ div, textarea {
   background: transparent;
   top: 0;
   left: 0;
+  white-space: pre-wrap;
 }
 #shadow {
   position: absolute;
@@ -248,7 +250,7 @@ div, textarea {
 #callStack, #sourceInput {
   letter-spacing: 1px;
 }
-#callStack.hidden {
+.hidden {
   display: none;
 }
 #callStack {
