@@ -123,6 +123,7 @@ div, textarea {
   resize: none;
   border: 0;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 .display div .lineEnd {
   display: none;
@@ -160,6 +161,7 @@ div, textarea {
 #shadow .unscanned {
   background: #eee;
   white-space: pre-wrap;
+  word-break: break-all;
 }
 #shadow .eof {
   background: #444;

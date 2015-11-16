@@ -1278,7 +1278,6 @@ window.onload = function () {
   unscanned.spellcheck = false;
   container.appendChild(unscanned);
   unscanned.oninput = function () {
-    return;
     if (unscanned.action !== undefined) {
       unscanned.action();
     }
@@ -1340,8 +1339,8 @@ window.onload = function () {
   document.getElementById('stepButton').onclick = False.singleStep;
   document.getElementById('stopButton').onclick = False.rewind;
   document.getElementById('pauseButton').onclick = False.pause;
-  False.display.input.unscanned.value = 'A man, a plan, a canal, Panama.\n';
   return;
+  False.display.input.unscanned.value = 'A man, a plan, a canal, Panama.\n';
   while (False.step.counter <= 291) {
     False.singleStep();
   }
