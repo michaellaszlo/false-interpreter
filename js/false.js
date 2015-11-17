@@ -1282,7 +1282,6 @@ window.onload = function () {
       unscanned.action();
     }
     shadow.unscanned.innerHTML = unscanned.value;
-    console.log('"' + unscanned.value + '"');
   };
 
   False.display.output = document.getElementById('outputDisplay');

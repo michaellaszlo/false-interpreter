@@ -124,6 +124,7 @@ div, textarea {
   border: 0;
   overflow-y: scroll;
   overflow-x: hidden;
+  white-space: pre-wrap;
 }
 .display div .lineEnd {
   display: none;
