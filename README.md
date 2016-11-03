@@ -1,2 +1,5 @@
-# false-interpreter
-An interpreter and fancy development interface for the FALSE language
+# False interpreter
+
+This web page provides a code editor and visual interpreter for the
+[FALSE language](http://strlen.com/false/false.txt).
+

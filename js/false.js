@@ -1268,7 +1268,14 @@ window.onload = function () {
   shadow.unscanned.className = 'unscanned';
   shadow.container.appendChild(shadow.unscanned);
   shadow.eof.className = 'eof';
-  shadow.eof.innerHTML = 'EOF';
+  shadow.eof.span = {
+    wait: document.createElement('span'),
+    end: document.createElement('span')
+  };
+  shadow.eof.span.wait.innerHTML = 'wait';
+  shadow.eof.span.end.innerHTML = 'EOF';
+  shadow.eof.appendChild(shadow.eof.span.wait);
+  shadow.eof.appendChild(shadow.eof.span.end);
   shadow.container.appendChild(shadow.eof);
   container.appendChild(shadow.container);
   shadow.caret.originalOffset = M.getOffset(shadow.caret, container);
