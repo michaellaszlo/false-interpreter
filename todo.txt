@@ -1,0 +1,74 @@
+
++ replace "className =" with addClass
+
++ replace recursive execution with call stack and step counters
+
++ display call stack
++ show delimiters with called lambda
++ keep both while lambdas on call stack
+
++ highlight current step
+
++ visual run
++ single step
+
++ implement line-by-line i/o display
++ demarcate line
++ show end of current line
+
++ rethink i/o model
++ flush scanned input to output
+
++ wait for input in continuous run modes
++ handle end-of-program state
+
++ implement Pause
++ make Stop interrupt the run
++ error state must prevent further execution
+
++ show scanned input
++ fix caret graphics
++ show end of input
+- let user toggle EOF
+- implement EOF
+
++ swap source code with call stack
+- clean up program states
+  - erroneous code
+  - executing
+  - done executing
+  - interrupt run
+  - execution mode: fast or visual
+  - what does each button do?
+- pause
+- run without visuals
+- speed chooser
+
+- highlight next instruction?
+- consider visual treatment of call start and call end
+
+- transition from visual to non-visual while running?
+  - and vice versa?
+- display run mode (visual or not, continuous or not) when interrupted?
+
+- consolidate False.run and False.visualRun
+- review state handling
+- review message box
+
+- consider program structure: encapsulation? classes?
+
+- automated testing
+
+- rethink layout
+- make columns and panes resizable?
+- improve styling
+- icons
+
+- tool tips?
+- overlay?
+- tutorial?
+- samples?
+- video?
+- sample programs?
+
+
